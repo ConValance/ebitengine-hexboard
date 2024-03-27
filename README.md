@@ -2,5 +2,5 @@
 
 a simple example for a hexboard with ebitengine.    
 
-example interpreterprogram procedure with PENSIZE 3:    
+screenshot:    
 ![Pic1](screenshotsmall.jpg)
