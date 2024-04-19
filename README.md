@@ -8,3 +8,7 @@ good information for hex: https://www.redblobgames.com/grids/hexagons/
 
 screenshot:    
 ![Pic1](screenshotsmall.jpg)
+
+
+# new changes:     
+mousecoordinates on left top corner    
