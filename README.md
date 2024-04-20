@@ -11,4 +11,4 @@ screenshot:
 
 
 # new changes:     
-mousecoordinates and corresponding hextile, see left top corner (but in math to find the hextile seems still something wrong...)    
+mousecoordinates and corresponding hextile, see left top corner (but in math for hextile still something wrong...)    
