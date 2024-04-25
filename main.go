@@ -86,7 +86,8 @@ func init() {
 	}
 
 	spriteimagenames[0] = "gopher.png"
-	for i := 0; i < 1; i++ {
+	spriteimagenames[1] = "gopher1.png"
+	for i := 0; i < 2; i++ {
 		var err error
 		var tmpimage *ebiten.Image
 		var tmpstring string
@@ -357,20 +358,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	screen.DrawImage(terrainimages[6], op)
 
-	for i := 0; i < 1; i++ {
-		var w int = spriteimages[0].Bounds().Dx()
-		var h int = spriteimages[0].Bounds().Dy()
-		//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
-		for i := 0; i < g.sprites.num; i++ {
-			s := g.sprites.sprites[i]
-			g.op.GeoM.Reset()
-			g.op.GeoM.Translate(-float64(w)/2, -float64(h)/2)
-			g.op.GeoM.Rotate(2 * math.Pi * float64(s.angle) / maxAngle)
-			g.op.GeoM.Translate(float64(w)/2, float64(h)/2)
-			g.op.GeoM.Translate(float64(s.x), float64(s.y))
-			screen.DrawImage(spriteimages[0], &g.op)
-		}
-	}	
+	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
+	var w,h int
+	for i := 0; i < g.sprites.num; i++ {
+		w = spriteimages[i].Bounds().Dx()
+		h = spriteimages[i].Bounds().Dy()
+		s := g.sprites.sprites[i]
+		g.op.GeoM.Reset()
+		g.op.GeoM.Translate(-float64(w)/2, -float64(h)/2)
+		g.op.GeoM.Rotate(2 * math.Pi * float64(s.angle) / maxAngle)
+		g.op.GeoM.Translate(float64(w)/2, float64(h)/2)
+		g.op.GeoM.Translate(float64(s.x), float64(s.y))
+		screen.DrawImage(spriteimages[i], &g.op)
+	}
+
 
 	ebitenutil.DebugPrint(screen, msg)
 
@@ -381,14 +382,27 @@ func (g *Game) init() {
 		g.inited = true
 	}()
 
-	g.sprites.sprites = make([]*Sprite, 1)
-	g.sprites.num = 1
+	g.sprites.sprites = make([]*Sprite, 2)
+	g.sprites.num = 2
 	
 	w, h := spriteimages[0].Bounds().Dx(), spriteimages[0].Bounds().Dy()
-	x, y := 160, 300
+	x, y := 160, 310
 	vx, vy := 0, 0
 	a := 0
 	g.sprites.sprites[0] = &Sprite{
+		imageWidth:  w,
+		imageHeight: h,
+		x:           x,
+		y:           y,
+		vx:          vx,
+		vy:          vy,
+		angle:       a,
+	}
+
+	x, y = 410, 254
+	vx, vy = 0, 0
+	a = 0
+	g.sprites.sprites[1] = &Sprite{
 		imageWidth:  w,
 		imageHeight: h,
 		x:           x,
