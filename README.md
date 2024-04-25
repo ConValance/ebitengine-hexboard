@@ -11,4 +11,5 @@ screenshot:
 
 
 # new changes:     
-mousecoordinates and corresponding hextile        
+- mousecoordinates and corresponding hextile
+- hextile greenlighted    
