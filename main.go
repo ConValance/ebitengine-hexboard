@@ -14,7 +14,9 @@ const columns = 10
 const rows = 6
 const tilewidth = 128
 const tilesizex = 110
+const sizex = tilesizex/2
 const tilesizey = 94
+const sizey = tilesizey/2
 const floor1start = 4
 
 var terrainimages []*ebiten.Image
@@ -95,21 +97,25 @@ type Game struct {
 }
 
 type point struct {
-	x int
-	y int
+	x float64
+	y float64
 }
 
 type hex struct {
-	q float64
-	r float64
+	q int
+	r int
 }
 
 type cube struct {
-	q float64
-	r float64
-	s float64
+	q int
+	r int
+	s int
 }
 
+type Orientation struct {
+    f0, f1, f2, f3 float64
+    b0, b1, b2, b3 float64
+};
 
 
 func (g *Game) Update() error {
@@ -220,58 +226,57 @@ func drawHex(screen *ebiten.Image) {
 
 }
 
-func axial_to_cube(h hex) cube {
-    var q = h.q
-    var r = h.r
-    var s = -q-r
-    return cube{q, r, s}
+
+func hex_round(hq, hr, hs float64) hex {
+    var q int = int(math.Round(hq));
+    var r int = int(math.Round(hr));
+    var s int = int(math.Round(hs));
+    var q_diff float64 = math.Abs(float64(q) - hq);
+    var r_diff float64= math.Abs(float64(r) - hr);
+    var s_diff float64 = math.Abs(float64(s) - hs);
+    if (q_diff > r_diff && q_diff > s_diff) {
+        q = -r - s;
+    } else if (r_diff > s_diff) {
+        r = -q - s;
+    } else {
+        s = -q - r;
+    }
+    return hex{q-1, r-1}
 }
 
-func cube_round(c cube) cube {
-    var q = math.Round(c.q)
-    var r = math.Round(c.r)
-    var s = math.Round(c.s)
-
-    var q_diff = math.Abs(q - c.q)
-    var r_diff = math.Abs(r - c.r)
-    var s_diff = math.Abs(s - c.s)
-
-    if q_diff > r_diff && q_diff > s_diff {
-        q = -r-s
-	} else if r_diff > s_diff {
-        r = -q-s
-	} else {
-        s = -q-r
-	}
-
-    return cube{q, r, s}
-}
-
-func cube_to_axial(c cube) hex {
-    var q = c.q
-    var r = c.r
-    return hex{q, r}
-}
-
-func axial_round(h hex) hex {
-    return cube_to_axial(cube_round(axial_to_cube(h)))
-}
-
-func pixel_to_flat_hex(p point) hex {
-    var q = ( 2.0/3.0 * float64(p.x) ) / (tilesizex/2)
-    var r = (-1.0/3.0 * float64(p.x)  +  math.Sqrt(3.0)/3.0 * float64(p.y)) / (tilesizex/2)
-    return axial_round(hex{q, r})
+// look https://www.redblobgames.com/grids/hexagons/implementation.html#code
+func pixel_to_hex(p point) hex {
+	var layout_flat Orientation
+	layout_flat=Orientation{3.0 / 2.0, 0.0, math.Sqrt(3.0) / 2.0, math.Sqrt(3.0),
+		2.0 / 3.0, 0.0, -1.0 / 3.0, math.Sqrt(3.0) / 3.0}
+	
+	//var pt point = point{(p.x - layout.origin.x) / layout.size.x, (p.y - layout.origin.y) / layout.size.y}
+	var pt point = point{(p.x)/sizex, (p.y)/sizey }
+	var q float64 = layout_flat.b0 * pt.x + layout_flat.b1 * pt.y
+	//var r float64 = layout_flat.b2 * pt.x  + layout_flat.b3 * pt.y
+	var r float64 = layout_flat.b3 * pt.y
+	//return hex{int(q), int(r)}
+	return hex_round(q, r, -q -r)
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
 	drawHex(screen)
 	var p point
 	var h hex
+
+	p.x = float64(g.cursor.x)
+	p.y = float64(g.cursor.y)
+	h = pixel_to_hex(p)
+	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, h.q, h.r)
 	
-	p.x=g.cursor.x
-	p.y=g.cursor.y
-	h = pixel_to_flat_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d)= tile(%2.f, %2.f)", g.cursor.x, g.cursor.y, h.q, h.r)
+	op.GeoM.Translate(float64(tilesizex*3/4)*float64(h.q), float64(h.r)*tilesizey)
+	if h.q%2 == 0 {
+		op.GeoM.Translate(0, float64(tilesizey/2))
+	}
+	screen.DrawImage(terrainimages[6], op)
+
+
 	ebitenutil.DebugPrint(screen, msg)
 }
 
