@@ -244,7 +244,7 @@ func hex_round(hq, hr, hs float64) hex {
     return hex{q-1, r-1}
 }
 
-// look https://www.redblobgames.com/grids/hexagons/implementation.html#code
+
 func pixel_to_hex(p point) hex {
 	var layout_flat Orientation
 	layout_flat=Orientation{3.0 / 2.0, 0.0, math.Sqrt(3.0) / 2.0, math.Sqrt(3.0),
@@ -255,6 +255,9 @@ func pixel_to_hex(p point) hex {
 	var q float64 = layout_flat.b0 * pt.x + layout_flat.b1 * pt.y
 	//var r float64 = layout_flat.b2 * pt.x  + layout_flat.b3 * pt.y
 	var r float64 = layout_flat.b3 * pt.y
+	if int(q)%2 == 0 {
+		r=r*0.8
+	}
 	//return hex{int(q), int(r)}
 	return hex_round(q, r, -q -r)
 }
