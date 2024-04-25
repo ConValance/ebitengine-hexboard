@@ -12,4 +12,4 @@ screenshot:
 
 # new changes:     
 - mousecoordinates and corresponding hextile
-- hextile greenlighted    
+- selected hextile greenlighted    
