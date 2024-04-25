@@ -150,6 +150,7 @@ type Sprite struct {
 	vx          int
 	vy          int
 	angle       int
+	image		int
 }
 
 func (s *Sprite) Update() {
@@ -369,7 +370,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.op.GeoM.Rotate(2 * math.Pi * float64(s.angle) / maxAngle)
 		g.op.GeoM.Translate(float64(w)/2, float64(h)/2)
 		g.op.GeoM.Translate(float64(s.x), float64(s.y))
-		screen.DrawImage(spriteimages[i], &g.op)
+		screen.DrawImage(spriteimages[g.sprites.sprites[i].image], &g.op)
 	}
 
 
@@ -397,6 +398,7 @@ func (g *Game) init() {
 		vx:          vx,
 		vy:          vy,
 		angle:       a,
+		image:		 0,
 	}
 
 	x, y = 410, 254
@@ -410,6 +412,7 @@ func (g *Game) init() {
 		vx:          vx,
 		vy:          vy,
 		angle:       a,
+		image: 		 1,
 	}
 
 }
