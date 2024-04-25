@@ -12,4 +12,6 @@ screenshot:
 
 # new changes:     
 - mousecoordinates and corresponding hextile
-- selected hextile greenlighted    
+- selected hextile greenlighted
+- first sprite
+  
