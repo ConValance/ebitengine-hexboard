@@ -10,6 +10,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+
+const screenWidth  = 1200
+const screenHeight = 800
+const maxAngle     = 256
+
 const columns = 10
 const rows = 6
 const tilewidth = 128
@@ -21,6 +26,8 @@ const floor1start = 4
 
 var terrainimages []*ebiten.Image
 var terrainimagenames [8]string
+var spriteimages []*ebiten.Image
+var spriteimagenames [8]string
 
 var terrainmap0 = [rows][columns]int{
 	{0, 0, 0, 3, 1, 2, 2, 0, 0, 0},
@@ -66,7 +73,6 @@ func init() {
 	terrainimagenames[5] = "road2.png"
 	terrainimagenames[6] = "companygreen.png"
 	terrainimagenames[7] = "companyred.png"
-
 	for i := 0; i < 8; i++ {
 		var err error
 		var tmpimage *ebiten.Image
@@ -78,6 +84,20 @@ func init() {
 		}
 		terrainimages = append(terrainimages, tmpimage)
 	}
+
+	spriteimagenames[0] = "gopher.png"
+	for i := 0; i < 1; i++ {
+		var err error
+		var tmpimage *ebiten.Image
+		var tmpstring string
+		tmpstring = "resources/sprites/" + spriteimagenames[i]
+		tmpimage, _, err = ebitenutil.NewImageFromFile(tmpstring)
+		if err != nil {
+			log.Fatal(err)
+		}
+		spriteimages = append(spriteimages, tmpimage)
+	}
+
 }
 
 type touch struct {
@@ -94,6 +114,9 @@ type Game struct {
 	cursor  pos
 	touches []touch
 	count   int
+	sprites  Sprites
+	inited   bool
+	op       ebiten.DrawImageOptions
 }
 
 type point struct {
@@ -118,7 +141,60 @@ type Orientation struct {
 };
 
 
+type Sprite struct {
+	imageWidth  int
+	imageHeight int
+	x           int
+	y           int
+	vx          int
+	vy          int
+	angle       int
+}
+
+func (s *Sprite) Update() {
+	s.x += s.vx
+	s.y += s.vy
+	if s.x < 0 {
+		s.x = -s.x
+		s.vx = -s.vx
+	} else if mx := screenWidth - s.imageWidth; mx <= s.x {
+		s.x = 2*mx - s.x
+		s.vx = -s.vx
+	}
+	if s.y < 0 {
+		s.y = -s.y
+		s.vy = -s.vy
+	} else if my := screenHeight - s.imageHeight; my <= s.y {
+		s.y = 2*my - s.y
+		s.vy = -s.vy
+	}
+	//s.angle++
+	//if s.angle == maxAngle {
+	//	s.angle = 0
+	//}
+}
+
+type Sprites struct {
+	sprites []*Sprite
+	num     int
+}
+
+func (s *Sprites) Update() {
+	for i := 0; i < s.num; i++ {
+		s.sprites[i].Update()
+	}
+}
+
+const (
+	MinSprites = 0
+	MaxSprites = 50000
+)
+
+
 func (g *Game) Update() error {
+	if !g.inited {
+		g.init()
+	}
 	mx, my := ebiten.CursorPosition()
 	//if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 	//	g.paint(g.canvasImage, mx, my)
@@ -128,6 +204,8 @@ func (g *Game) Update() error {
 		x: mx,
 		y: my,
 	}
+
+	g.sprites.Update()
 
 	return nil
 }
@@ -266,21 +344,60 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	drawHex(screen)
 	var p point
-	var h hex
+	var hx hex
 
 	p.x = float64(g.cursor.x)
 	p.y = float64(g.cursor.y)
-	h = pixel_to_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, h.q, h.r)
+	hx = pixel_to_hex(p)
+	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
 	
-	op.GeoM.Translate(float64(tilesizex*3/4)*float64(h.q), float64(h.r)*tilesizey)
-	if h.q%2 == 0 {
+	op.GeoM.Translate(float64(tilesizex*3/4)*float64(hx.q), float64(hx.r)*tilesizey)
+	if hx.q%2 == 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
 	screen.DrawImage(terrainimages[6], op)
 
+	for i := 0; i < 1; i++ {
+		var w int = spriteimages[0].Bounds().Dx()
+		var h int = spriteimages[0].Bounds().Dy()
+		//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
+		for i := 0; i < g.sprites.num; i++ {
+			s := g.sprites.sprites[i]
+			g.op.GeoM.Reset()
+			g.op.GeoM.Translate(-float64(w)/2, -float64(h)/2)
+			g.op.GeoM.Rotate(2 * math.Pi * float64(s.angle) / maxAngle)
+			g.op.GeoM.Translate(float64(w)/2, float64(h)/2)
+			g.op.GeoM.Translate(float64(s.x), float64(s.y))
+			screen.DrawImage(spriteimages[0], &g.op)
+		}
+	}	
 
 	ebitenutil.DebugPrint(screen, msg)
+
+}
+
+func (g *Game) init() {
+	defer func() {
+		g.inited = true
+	}()
+
+	g.sprites.sprites = make([]*Sprite, 1)
+	g.sprites.num = 1
+	
+	w, h := spriteimages[0].Bounds().Dx(), spriteimages[0].Bounds().Dy()
+	x, y := 160, 300
+	vx, vy := 0, 0
+	a := 0
+	g.sprites.sprites[0] = &Sprite{
+		imageWidth:  w,
+		imageHeight: h,
+		x:           x,
+		y:           y,
+		vx:          vx,
+		vy:          vy,
+		angle:       a,
+	}
+
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
