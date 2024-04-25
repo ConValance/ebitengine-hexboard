@@ -13,5 +13,7 @@ screenshot:
 # new changes:     
 - mousecoordinates and corresponding hextile
 - selected hextile greenlighted
-- first sprites   
+- first sprites
+- recognition of mouseclicked sprite
+  
   
