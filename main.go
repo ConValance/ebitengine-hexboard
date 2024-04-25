@@ -198,14 +198,30 @@ func (g *Game) Update() error {
 		g.init()
 	}
 	mx, my := ebiten.CursorPosition()
-	//if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-	//	g.paint(g.canvasImage, mx, my)
-	//	drawn = true
-	//}
 	g.cursor = pos{
 		x: mx,
 		y: my,
 	}
+
+	var p point
+	var hx, sx hex
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		p.x = float64(g.cursor.x)
+		p.y = float64(g.cursor.y)
+		hx = pixel_to_hex(p)
+		for i := 0; i < g.sprites.num; i++ {
+			p.x = float64(g.sprites.sprites[i].x+tilesizex)
+			p.y = float64(g.sprites.sprites[i].y)
+			sx = pixel_to_hex(p)
+			if int(sx.q)%2 != 0 {
+				sx.r++
+			}
+			if(hx==sx){
+				fmt.Println("sprite clicked ", hx.q, hx.r)
+			}
+		}
+	}
+
 
 	g.sprites.Update()
 
