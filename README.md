@@ -14,5 +14,12 @@ screenshot:
 - selected hextile greenlighted
 - first sprites
 - recognition of mouseclicked sprite
-  
+- added astar pathfinding for hexboard ... program seems to turn into a jungle...maybe i should put the pathfinding later to other file/library?...    
+    ```
+    astar := NewAStar(ngrid)
+    var path *Stack[*ANode]
+	  path=astar.FindPath(Vector2{4,0}, Vector2{5,3})
+	  fmt.Println("pathlen: ", path.Count())
+    ```
+    
   
