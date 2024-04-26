@@ -10,20 +10,30 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-
-const screenWidth  = 1200
+const screenWidth = 1200
 const screenHeight = 800
-const maxAngle     = 256
+const maxAngle = 256
 
 const columns = 10
 const rows = 6
 const tilewidth = 128
 const tilesizex = 110
-const sizex = tilesizex/2
+const sizex = tilesizex / 2
 const tilesizey = 94
-const sizey = tilesizey/2
+const sizey = tilesizey / 2
 const floor1start = 4
 
+const (
+	terrainGrass Direction = iota
+	terrainWater
+	terrainMountain
+	terrainDesert
+	terrainRoad1
+	terrainRoad2
+	NumberOfTerrains
+)
+
+var ngrid [][]*ANode
 var terrainimages []*ebiten.Image
 var terrainimagenames [8]string
 var spriteimages []*ebiten.Image
@@ -99,6 +109,22 @@ func init() {
 		spriteimages = append(spriteimages, tmpimage)
 	}
 
+	genGrid()
+	astar := NewAStar(ngrid)
+	//astar := AStar(ngrid)
+	fmt.Println("AStar colums, rows:",astar.GridCols, astar.GridRows)
+	//for y := 0; y < (rows); y++ {
+	//	for x := 0; x < (columns); x++ {
+	//		fmt.Println("Walkable pos", y," ",x," ",astar.Grid[y][x].Walkable)
+	//	}
+	//}
+	var path *Stack[*ANode]
+	path=astar.FindPath(Vector2{4,0}, Vector2{5,3})
+	fmt.Println("pathlen: ", path.Count())
+	for i:=0; i<path.Count(); i++{
+		fmt.Println("path Nr:",i, " x:", path.items[i].Position.X, " y:",path.items[i].Position.Y)
+	}
+
 }
 
 type touch struct {
@@ -115,9 +141,9 @@ type Game struct {
 	cursor  pos
 	touches []touch
 	count   int
-	sprites  Sprites
-	inited   bool
-	op       ebiten.DrawImageOptions
+	sprites Sprites
+	inited  bool
+	op      ebiten.DrawImageOptions
 }
 
 type point struct {
@@ -137,10 +163,9 @@ type cube struct {
 }
 
 type Orientation struct {
-    f0, f1, f2, f3 float64
-    b0, b1, b2, b3 float64
-};
-
+	f0, f1, f2, f3 float64
+	b0, b1, b2, b3 float64
+}
 
 type Sprite struct {
 	imageWidth  int
@@ -150,8 +175,326 @@ type Sprite struct {
 	vx          int
 	vy          int
 	angle       int
-	image		int
+	image       int
 }
+
+// --- from here pathfinding astar hex ------------------------------------------------
+
+type Direction int
+
+const (
+	North Direction = iota
+	NorthEast
+	SouthEast
+	South
+	SouthWest
+	NorthWest
+	NumberOfDirections
+)
+
+func RotateDirection(direction Direction, amount int) Direction {
+	direction = direction + Direction(amount)
+
+	var n_dir int = int(direction) % int(NumberOfDirections)
+	if n_dir < 0 {
+		n_dir = int(NumberOfDirections) + n_dir
+	}
+	direction = Direction(n_dir)
+
+	return direction
+}
+
+func neighbor(tile Vector2, direc Direction) Vector2 {
+	if int(tile.X)%2 == 0 {
+		switch direc {
+		case North:
+			tile.Y -= 1
+		case NorthEast:
+			tile.X += 1
+			tile.Y -= 1
+		case SouthEast:
+			tile.X += 1
+		case South:
+			tile.Y += 1
+		case SouthWest:
+			tile.X -= 1
+		case NorthWest:
+			tile.X -= 1
+			tile.Y -= 1
+		}
+	} else {
+		switch direc {
+		case North:
+			tile.Y -= 1
+		case NorthEast:
+			tile.X += 1
+		case SouthEast:
+			tile.X += 1
+			tile.Y += 1
+		case South:
+			tile.Y += 1
+		case SouthWest:
+			tile.X -= 1
+			tile.Y += 1
+		case NorthWest:
+			tile.X -= 1
+		}
+	}
+
+	if tile.X < 0 {
+		tile.X = -1
+	}
+	if tile.Y < 0 {
+		tile.Y = -1
+	}
+	if tile.X > columns-1 {
+		tile.X = -1
+	}
+	if tile.Y > rows-1 {
+		tile.Y = -1
+	}
+	return tile
+}
+
+/*
+type ANode struct {
+    Parent           *ANode
+    Position         Vector2
+    Center           Vector2
+    DistanceToTarget float64
+    Cost             float64
+    Weight           float64
+    Walkable         bool
+}
+
+func NewANode(pos Vector2, walkable bool, weight float64) *ANode {
+    return &ANode{
+        Parent:           nil,
+        Position:         pos,
+        Center:           Vector2{pos.X + NODE_SIZE/2, pos.Y + NODE_SIZE/2},
+        DistanceToTarget: -1,
+        Cost:             1,
+        Weight:           weight,
+        Walkable:         walkable,
+    }
+}
+*/
+
+/*
+func F(n *ANode) float64 {
+    if n.DistanceToTarget != -1 && n.Cost != -1 {
+        return n.DistanceToTarget + n.Cost
+    }
+    return -1
+}
+*/
+
+const NODE_SIZE = 1
+
+type ANode struct {
+	Position         Vector2
+	Walkable         bool
+	Parent           *ANode
+	DistanceToTarget float64
+	Cost             float64
+	Weight           float64
+	F                float64
+}
+
+func NewANode(position Vector2, walkable bool) *ANode {
+	return &ANode{
+		Position: position,
+		Walkable: walkable,
+	}
+}
+
+type AStar struct {
+    Grid     [][]*ANode
+    GridRows int
+    GridCols int
+}
+
+func NewAStar(grid [][]*ANode) *AStar {
+    return &AStar{
+        Grid:     grid,
+        GridRows: len(grid[0]),
+        GridCols: len(grid),
+    }
+}
+
+//var Grid [][]*ANode
+
+type Vector2 struct {
+	X, Y float64
+}
+
+type PriorityQueue[T any, P float64] struct {
+	items []struct {
+		Element  T
+		Priority P
+	}
+}
+
+func NewPriorityQueue[T any, P float64]() *PriorityQueue[T, P] {
+	return &PriorityQueue[T, P]{
+		items: make([]struct {
+			Element  T
+			Priority P
+		}, 0),
+	}
+}
+
+func (pq *PriorityQueue[T, P]) Enqueue(element T, priority P) {
+	pq.items = append(pq.items, struct {
+		Element  T
+		Priority P
+	}{
+		Element:  element,
+		Priority: priority,
+	})
+}
+
+func (pq *PriorityQueue[T, P]) Dequeue() T {
+	minIndex := 0
+	for i := 1; i < len(pq.items); i++ {
+		if pq.items[i].Priority < pq.items[minIndex].Priority {
+			minIndex = i
+		}
+	}
+	item := pq.items[minIndex]
+	pq.items = append(pq.items[:minIndex], pq.items[minIndex+1:]...)
+	return item.Element
+}
+
+func (pq *PriorityQueue[T, P]) Count() int {
+	return len(pq.items)
+}
+
+func (a *AStar) FindPath(start, end Vector2) *Stack[*ANode] {
+	startNode := NewANode(Vector2{
+		X: start.X / NODE_SIZE,
+		Y: start.Y / NODE_SIZE,
+	}, true)
+	endNode := NewANode(Vector2{
+		X: end.X / NODE_SIZE,
+		Y: end.Y / NODE_SIZE,
+	}, true)
+
+	path := NewStack[*ANode]()
+	openList := NewPriorityQueue[*ANode, float64]()
+	closedList := make([]*ANode, 0)
+
+	current := startNode
+	openList.Enqueue(startNode, startNode.F)
+
+	for openList.Count() != 0 && !contains(closedList, func(n *ANode) bool {
+		return n.Position == endNode.Position
+	}) {
+		current = openList.Dequeue()
+		closedList = append(closedList, current)
+		adjacencies := a.GetAdjacentNodes(current)
+		for _, n := range adjacencies {
+			if !contains(closedList, func(c *ANode) bool {
+				return c == n
+			}) && n.Walkable {
+				isFound := false
+				for _, oLNode := range openList.items {
+					if oLNode.Element == n {
+						isFound = true
+						break
+					}
+				}
+				if !isFound {
+					n.Parent = current
+					n.DistanceToTarget = math.Abs(n.Position.X-endNode.Position.X) + math.Abs(n.Position.Y-endNode.Position.Y)
+					n.Cost = n.Weight + n.Parent.Cost
+					openList.Enqueue(n, n.F)
+				}
+			}
+		}
+	}
+
+	if !contains(closedList, func(n *ANode) bool {
+		return n.Position == endNode.Position
+	}) {
+		return nil
+	}
+
+	temp := closedList[indexOf(closedList, func(n *ANode) bool {
+		return n == current
+	})]
+	if temp == nil {
+		return nil
+	}
+	for temp != startNode && temp != nil {
+		path.Push(temp)
+		temp = temp.Parent
+	}
+	return path
+}
+
+func contains[T any](slice []*T, predicate func(*T) bool) bool {
+	for _, item := range slice {
+		if predicate(item) {
+			return true
+		}
+	}
+	return false
+}
+
+func indexOf[T any](slice []*T, predicate func(*T) bool) int {
+	for i, item := range slice {
+		if predicate(item) {
+			return i
+		}
+	}
+	return -1
+}
+
+type Stack[T any] struct {
+	items []T
+}
+
+func NewStack[T any]() *Stack[T] {
+	return &Stack[T]{
+		items: make([]T, 0),
+	}
+}
+
+func (s *Stack[T]) Push(item T) {
+	s.items = append(s.items, item)
+}
+
+func (s *Stack[T]) Pop() T {
+	item := s.items[len(s.items)-1]
+	s.items = s.items[:len(s.items)-1]
+	return item
+}
+
+func (s *Stack[T]) Count() int {
+	return len(s.items)
+}
+
+func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
+	var temp []*ANode
+	var dir Direction
+
+	// fmt.Println("grid count:", len(Grid), "grid 0 0", Grid[1][1].Position.String())
+	for i := 0; i < 6; i++ {
+		m := neighbor(n.Position, dir)
+		// fmt.Println("getadjacent node:", n.Position.String(), " dir:", dir.String(), "  neighbor:", m.String())
+		if m.X > -1 && m.Y > -1 {
+			temp = append(temp, a.Grid[int(m.Y)][int(m.X)])
+		}
+		// if hex.newworld.GetHeight(int(n.x), int(n.y)) != h {
+		//     return nil
+		// }
+		dir = RotateDirection(dir, 1)
+	}
+	return temp
+}
+
+// --- to here pathfinding hex ------------------------------------------------
 
 func (s *Sprite) Update() {
 	s.x += s.vx
@@ -192,7 +535,6 @@ const (
 	MaxSprites = 50000
 )
 
-
 func (g *Game) Update() error {
 	if !g.inited {
 		g.init()
@@ -210,22 +552,42 @@ func (g *Game) Update() error {
 		p.y = float64(g.cursor.y)
 		hx = pixel_to_hex(p)
 		for i := 0; i < g.sprites.num; i++ {
-			p.x = float64(g.sprites.sprites[i].x+tilesizex)
+			p.x = float64(g.sprites.sprites[i].x + tilesizex)
 			p.y = float64(g.sprites.sprites[i].y)
 			sx = pixel_to_hex(p)
 			if int(sx.q)%2 != 0 {
 				sx.r++
 			}
-			if(hx==sx){
+			if hx == sx {
 				fmt.Println("sprite clicked ", hx.q, hx.r)
 			}
 		}
 	}
 
-
 	g.sprites.Update()
 
 	return nil
+}
+
+func genGrid() {
+	for y := 0; y < (rows); y++ {
+		var anodes []*ANode
+		for x := 0; x < (columns); x++ {
+			var tmpanode ANode
+			tmpanode.Position.X = float64(x)
+			tmpanode.Position.Y = float64(y)
+			if terrainmap0[y][x] == int(terrainGrass) || terrainmap0[y][x] == int(terrainDesert) {
+				tmpanode.Walkable = true
+			} else {
+				tmpanode.Walkable = false
+			}
+			if terrainmap1[y][x] == int(terrainRoad1) || terrainmap0[y][x] == int(terrainRoad2) {
+				tmpanode.Walkable = true
+			}
+			anodes = append(anodes, &tmpanode)
+		}
+		ngrid = append(ngrid, anodes)
+	}
 }
 
 func drawHex(screen *ebiten.Image) {
@@ -322,40 +684,38 @@ func drawHex(screen *ebiten.Image) {
 
 }
 
-
 func hex_round(hq, hr, hs float64) hex {
-    var q int = int(math.Round(hq));
-    var r int = int(math.Round(hr));
-    var s int = int(math.Round(hs));
-    var q_diff float64 = math.Abs(float64(q) - hq);
-    var r_diff float64= math.Abs(float64(r) - hr);
-    var s_diff float64 = math.Abs(float64(s) - hs);
-    if (q_diff > r_diff && q_diff > s_diff) {
-        q = -r - s;
-    } else if (r_diff > s_diff) {
-        r = -q - s;
-    } else {
-        s = -q - r;
-    }
-    return hex{q-1, r-1}
+	var q int = int(math.Round(hq))
+	var r int = int(math.Round(hr))
+	var s int = int(math.Round(hs))
+	var q_diff float64 = math.Abs(float64(q) - hq)
+	var r_diff float64 = math.Abs(float64(r) - hr)
+	var s_diff float64 = math.Abs(float64(s) - hs)
+	if q_diff > r_diff && q_diff > s_diff {
+		q = -r - s
+	} else if r_diff > s_diff {
+		r = -q - s
+	} else {
+		s = -q - r
+	}
+	return hex{q - 1, r - 1}
 }
-
 
 func pixel_to_hex(p point) hex {
 	var layout_flat Orientation
-	layout_flat=Orientation{3.0 / 2.0, 0.0, math.Sqrt(3.0) / 2.0, math.Sqrt(3.0),
+	layout_flat = Orientation{3.0 / 2.0, 0.0, math.Sqrt(3.0) / 2.0, math.Sqrt(3.0),
 		2.0 / 3.0, 0.0, -1.0 / 3.0, math.Sqrt(3.0) / 3.0}
-	
+
 	//var pt point = point{(p.x - layout.origin.x) / layout.size.x, (p.y - layout.origin.y) / layout.size.y}
-	var pt point = point{(p.x)/sizex, (p.y)/sizey }
-	var q float64 = layout_flat.b0 * pt.x + layout_flat.b1 * pt.y
+	var pt point = point{(p.x) / sizex, (p.y) / sizey}
+	var q float64 = layout_flat.b0*pt.x + layout_flat.b1*pt.y
 	//var r float64 = layout_flat.b2 * pt.x  + layout_flat.b3 * pt.y
 	var r float64 = layout_flat.b3 * pt.y
 	if int(q)%2 == 0 {
-		r=r*0.85
+		r = r * 0.85
 	}
 	//return hex{int(q), int(r)}
-	return hex_round(q, r, -q -r)
+	return hex_round(q, r, -q-r)
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
@@ -367,8 +727,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	p.x = float64(g.cursor.x)
 	p.y = float64(g.cursor.y)
 	hx = pixel_to_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
-	
+	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.r, hx.q)
+
 	op.GeoM.Translate(float64(tilesizex*3/4)*float64(hx.q), float64(hx.r)*tilesizey)
 	if hx.q%2 == 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
@@ -376,7 +736,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(terrainimages[6], op)
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
-	var w,h int
+	var w, h int
 	for i := 0; i < g.sprites.num; i++ {
 		w = spriteimages[i].Bounds().Dx()
 		h = spriteimages[i].Bounds().Dy()
@@ -389,10 +749,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(spriteimages[g.sprites.sprites[i].image], &g.op)
 	}
 
-
 	ebitenutil.DebugPrint(screen, msg)
 
 }
+
 
 func (g *Game) init() {
 	defer func() {
@@ -401,7 +761,7 @@ func (g *Game) init() {
 
 	g.sprites.sprites = make([]*Sprite, 2)
 	g.sprites.num = 2
-	
+
 	w, h := spriteimages[0].Bounds().Dx(), spriteimages[0].Bounds().Dy()
 	x, y := 160, 310
 	vx, vy := 0, 0
@@ -414,7 +774,7 @@ func (g *Game) init() {
 		vx:          vx,
 		vy:          vy,
 		angle:       a,
-		image:		 0,
+		image:       0,
 	}
 
 	x, y = 410, 254
@@ -428,10 +788,11 @@ func (g *Game) init() {
 		vx:          vx,
 		vy:          vy,
 		angle:       a,
-		image: 		 1,
+		image:       1,
 	}
 
 }
+
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 1200, 800
