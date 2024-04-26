@@ -112,17 +112,17 @@ func init() {
 	genGrid()
 	astar := NewAStar(ngrid)
 	//astar := AStar(ngrid)
-	fmt.Println("AStar colums, rows:",astar.GridCols, astar.GridRows)
+	fmt.Println("AStar colums, rows:", astar.GridCols, astar.GridRows)
 	//for y := 0; y < (rows); y++ {
 	//	for x := 0; x < (columns); x++ {
 	//		fmt.Println("Walkable pos", y," ",x," ",astar.Grid[y][x].Walkable)
 	//	}
 	//}
 	var path *Stack[*ANode]
-	path=astar.FindPath(Vector2{4,0}, Vector2{5,3})
+	path = astar.FindPath(Vector2{4, 0}, Vector2{5, 3})
 	fmt.Println("pathlen: ", path.Count())
-	for i:=0; i<path.Count(); i++{
-		fmt.Println("path Nr:",i, " x:", path.items[i].Position.X, " y:",path.items[i].Position.Y)
+	for i := 0; i < path.Count(); i++ {
+		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
 	}
 
 }
@@ -256,39 +256,6 @@ func neighbor(tile Vector2, direc Direction) Vector2 {
 	return tile
 }
 
-/*
-type ANode struct {
-    Parent           *ANode
-    Position         Vector2
-    Center           Vector2
-    DistanceToTarget float64
-    Cost             float64
-    Weight           float64
-    Walkable         bool
-}
-
-func NewANode(pos Vector2, walkable bool, weight float64) *ANode {
-    return &ANode{
-        Parent:           nil,
-        Position:         pos,
-        Center:           Vector2{pos.X + NODE_SIZE/2, pos.Y + NODE_SIZE/2},
-        DistanceToTarget: -1,
-        Cost:             1,
-        Weight:           weight,
-        Walkable:         walkable,
-    }
-}
-*/
-
-/*
-func F(n *ANode) float64 {
-    if n.DistanceToTarget != -1 && n.Cost != -1 {
-        return n.DistanceToTarget + n.Cost
-    }
-    return -1
-}
-*/
-
 const NODE_SIZE = 1
 
 type ANode struct {
@@ -309,17 +276,17 @@ func NewANode(position Vector2, walkable bool) *ANode {
 }
 
 type AStar struct {
-    Grid     [][]*ANode
-    GridRows int
-    GridCols int
+	Grid     [][]*ANode
+	GridRows int
+	GridCols int
 }
 
 func NewAStar(grid [][]*ANode) *AStar {
-    return &AStar{
-        Grid:     grid,
-        GridRows: len(grid[0]),
-        GridCols: len(grid),
-    }
+	return &AStar{
+		Grid:     grid,
+		GridRows: len(grid[0]),
+		GridCols: len(grid),
+	}
 }
 
 //var Grid [][]*ANode
@@ -753,7 +720,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 }
 
-
 func (g *Game) init() {
 	defer func() {
 		g.inited = true
@@ -792,7 +758,6 @@ func (g *Game) init() {
 	}
 
 }
-
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 1200, 800
