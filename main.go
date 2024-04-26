@@ -119,12 +119,20 @@ func init() {
 	//	}
 	//}
 	var path *Stack[*ANode]
-	path = astar.FindPath(Vector2{4, 0}, Vector2{5, 3})
-	fmt.Println("pathlen: ", path.Count())
+	var vstart Vector2
+	vstart.X=2
+	vstart.Y=3
+	var vend Vector2
+	vend.X=3
+	vend.Y=7
+	path = astar.FindPath(vstart, vend)
+	//fmt.Println("pathlen: ", path.Count())
+	var step int
 	for i := 0; i < path.Count(); i++ {
 		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
+		step = i
 	}
-
+	fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
 }
 
 type touch struct {
@@ -439,7 +447,9 @@ func (s *Stack[T]) Pop() T {
 }
 
 func (s *Stack[T]) Count() int {
-	return len(s.items)
+	var length int
+	length=len(s.items)
+	return length
 }
 
 func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
@@ -451,7 +461,7 @@ func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
 		m := neighbor(n.Position, dir)
 		// fmt.Println("getadjacent node:", n.Position.String(), " dir:", dir.String(), "  neighbor:", m.String())
 		if m.X > -1 && m.Y > -1 {
-			temp = append(temp, a.Grid[int(m.Y)][int(m.X)])
+			temp = append(temp, a.Grid[int(m.X)][int(m.Y)])
 		}
 		// if hex.newworld.GetHeight(int(n.x), int(n.y)) != h {
 		//     return nil
@@ -537,9 +547,9 @@ func (g *Game) Update() error {
 }
 
 func genGrid() {
-	for y := 0; y < (rows); y++ {
+	for x := 0; x < (columns); x++ {
 		var anodes []*ANode
-		for x := 0; x < (columns); x++ {
+		for y := 0; y < (rows); y++ {
 			var tmpanode ANode
 			tmpanode.Position.X = float64(x)
 			tmpanode.Position.Y = float64(y)
