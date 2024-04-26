@@ -19,8 +19,11 @@ screenshot:
     ```
     astar := NewAStar(ngrid)
     var path *Stack[*ANode]
-	  path=astar.FindPath(Vector2{4,0}, Vector2{5,3})
-	  fmt.Println("pathlen: ", path.Count())
+     path=astar.FindPath(Vector2{4,0}, Vector2{5,3})
+     fmt.Println("pathlen: ", path.Count())
+     for i := 0; i < path.Count(); i++ {
+	fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
+     }
     ```
     
   
