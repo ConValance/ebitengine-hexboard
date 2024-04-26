@@ -14,7 +14,8 @@ screenshot:
 - selected hextile greenlighted
 - first sprites
 - recognition of mouseclicked sprite
-- added astar pathfinding for hexboard ... program seems to turn into a jungle...maybe i should put the pathfinding later to other file/library?...    
+- added astar pathfinding for hexboard ... program seems to turn into a jungle...maybe i should put the pathfinding later to other file/library?...
+  from the test in init:        
     ```
     astar := NewAStar(ngrid)
     var path *Stack[*ANode]
