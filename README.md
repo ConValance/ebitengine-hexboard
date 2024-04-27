@@ -25,5 +25,7 @@ screenshot:
 		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
      }
     ```
+- i think i will change layout from evenq to oddq?!?...
+  
     
   
