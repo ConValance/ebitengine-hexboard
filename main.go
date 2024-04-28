@@ -127,8 +127,8 @@ func init() {
 	vstart.X = 1
 	vstart.Y = 2
 	//var vend Vector2
-	vend.X = 5
-	vend.Y = 3
+	vend.X = 7
+	vend.Y = 0
 	path = astar.FindPath(vstart, vend)
 	//fmt.Println("pathlen: ", path.Count())
 	var step int
@@ -780,7 +780,7 @@ func (g *Game) init() {
 		image:       0,
 	}
 
-	x, y = 410, 300
+	x, y = 580, 20
 	vx, vy = 0, 0
 	a = 0
 	g.sprites.sprites[1] = &Sprite{
