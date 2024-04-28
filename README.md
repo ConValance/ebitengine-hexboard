@@ -25,7 +25,8 @@ screenshot:
 		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
      }
     ```
-- i think i will change layout from evenq to oddq?!?...
+- changed layout to evenq. now hexcoordinates are correct and hexpathfinding works (see green path over the bridge)!! only pixeltohex still not perfect...
+  
   
     
   
