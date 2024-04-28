@@ -732,6 +732,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	hx = pixel_to_hex(p)
 	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
+	op.GeoM.Reset()
 	op.GeoM.Translate(float64(tilesizex*3/4)*float64(hx.q), float64(hx.r)*tilesizey)
 	if hx.q%2 != 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
@@ -801,7 +802,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(1200, 800)
-	ebiten.SetWindowTitle("hexboard ebitengine")
+	ebiten.SetWindowTitle("ebitengine-hexboard")
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}
