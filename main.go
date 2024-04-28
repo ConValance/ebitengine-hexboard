@@ -24,27 +24,31 @@ const sizey = tilesizey / 2
 const floor1start = 4
 
 const (
-	terrainGrass Direction = iota
-	terrainWater
-	terrainMountain
-	terrainDesert
-	terrainRoad1
-	terrainRoad2
-	NumberOfTerrains
+	terrainGrass	= 0
+	terrainWater	= 1
+	terrainMountain	= 2
+	terrainDesert	= 3
+	terrainRoad1	= 4
+	terrainRoad2	= 5
+	NumberOfTerrains= 6
 )
 
+
 var ngrid [][]*ANode
+var path *Stack[*ANode]
+var vstart, vend Vector2
+
 var terrainimages []*ebiten.Image
-var terrainimagenames [8]string
+var terrainimagenames [16]string
 var spriteimages []*ebiten.Image
-var spriteimagenames [8]string
+var spriteimagenames [16]string
 
 var terrainmap0 = [rows][columns]int{
 	{0, 0, 0, 3, 1, 2, 2, 0, 0, 0},
 	{1, 1, 2, 3, 0, 2, 2, 2, 0, 0},
-	{1, 1, 1, 0, 0, 0, 2, 0, 0, 0},
+	{0, 0, 1, 1, 0, 0, 2, 0, 0, 0},
 	{0, 0, 0, 1, 1, 0, 0, 0, 0, 3},
-	{0, 0, 0, 2, 2, 1, 0, 3, 3, 3},
+	{0, 0, 0, 0, 1, 1, 0, 3, 3, 3},
 	{0, 0, 0, 0, 0, 1, 1, 0, 3, 3},
 }
 var flip0 = [rows][columns]int{ // flipx=1, flipy=2, both=3
@@ -59,8 +63,8 @@ var flip0 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 var terrainmap1 = [rows][columns]int{
 	{0, 0, 0, 0, 0, 0, 0, 7, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 5, 6, 0, 0, 0, 0},
-	{0, 0, 5, 5, 0, 5, 0, 7, 0, 0},
+	{0, 0, 0, 5, 5, 6, 0, 0, 0, 0},
+	{0, 0, 5, 0, 0, 5, 0, 7, 0, 0},
 	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
@@ -83,7 +87,8 @@ func init() {
 	terrainimagenames[5] = "road2.png"
 	terrainimagenames[6] = "companygreen.png"
 	terrainimagenames[7] = "companyred.png"
-	for i := 0; i < 8; i++ {
+	terrainimagenames[8] = "pathfinder.png"
+	for i := 0; i < 9; i++ {
 		var err error
 		var tmpimage *ebiten.Image
 		var tmpstring string
@@ -118,13 +123,13 @@ func init() {
 	//		fmt.Println("Walkable pos", y," ",x," ",astar.Grid[y][x].Walkable)
 	//	}
 	//}
-	var path *Stack[*ANode]
-	var vstart Vector2
-	vstart.X=2
-	vstart.Y=3
-	var vend Vector2
-	vend.X=3
-	vend.Y=7
+	//var path *Stack[*ANode]
+	//var vstart Vector2
+	vstart.X=1
+	vstart.Y=2
+	//var vend Vector2
+	vend.X=5
+	vend.Y=3
 	path = astar.FindPath(vstart, vend)
 	//fmt.Println("pathlen: ", path.Count())
 	var step int
@@ -133,6 +138,7 @@ func init() {
 		step = i
 	}
 	fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
+
 }
 
 type touch struct {
@@ -558,7 +564,7 @@ func genGrid() {
 			} else {
 				tmpanode.Walkable = false
 			}
-			if terrainmap1[y][x] == int(terrainRoad1) || terrainmap0[y][x] == int(terrainRoad2) {
+			if terrainmap1[y][x] == int(terrainRoad1) || terrainmap1[y][x] == int(terrainRoad2) {
 				tmpanode.Walkable = true
 			}
 			anodes = append(anodes, &tmpanode)
@@ -593,7 +599,7 @@ func drawHex(screen *ebiten.Image) {
 				}
 			}
 			op.GeoM.Translate(float64(tilesizex*3/4)*float64(x), float64(y)*tilesizey)
-			if x%2 == 0 {
+			if x%2 != 0 {
 				op.GeoM.Translate(0, float64(tilesizey/2))
 			}
 			screen.DrawImage(terrainimages[terrainmap0[y][x]], op)
@@ -617,7 +623,7 @@ func drawHex(screen *ebiten.Image) {
 				}
 			}
 			op.GeoM.Translate(float64(tilesizex*3/4)*float64(x), float64(y)*tilesizey)
-			if x%2 == 0 {
+			if x%2 != 0 {
 				op.GeoM.Translate(0, float64(tilesizey/2))
 			}
 			if terrainmap1[y][x] >= floor1start {
@@ -687,7 +693,8 @@ func pixel_to_hex(p point) hex {
 	var pt point = point{(p.x) / sizex, (p.y) / sizey}
 	var q float64 = layout_flat.b0*pt.x + layout_flat.b1*pt.y
 	//var r float64 = layout_flat.b2 * pt.x  + layout_flat.b3 * pt.y
-	var r float64 = layout_flat.b3 * pt.y
+	var r float64 = layout_flat.b3 * pt.y * 0.85
+	
 	if int(q)%2 == 0 {
 		r = r * 0.85
 	}
@@ -698,19 +705,40 @@ func pixel_to_hex(p point) hex {
 func (g *Game) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	drawHex(screen)
+
+	//var step int
+	for i := 0; i < path.Count(); i++ {
+		//fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(tilesizex*3/4)*float64(path.items[i].Position.X), float64(path.items[i].Position.Y)*tilesizey)
+		if int(path.items[i].Position.X)%2 != 0 {
+			op.GeoM.Translate(0, float64(tilesizey/2))
+		}
+		screen.DrawImage(terrainimages[8], op)
+		//step = i
+	}
+	//fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
+	op.GeoM.Reset()
+	op.GeoM.Translate(float64(tilesizex*3/4)*float64(vstart.X), float64(vstart.Y)*tilesizey)
+	if int(vstart.X)%2 != 0 {
+		op.GeoM.Translate(0, float64(tilesizey/2))
+	}
+	screen.DrawImage(terrainimages[8], op)
+
 	var p point
 	var hx hex
 
 	p.x = float64(g.cursor.x)
-	p.y = float64(g.cursor.y)
+	p.y = float64(g.cursor.y+tilesizey/2)
 	hx = pixel_to_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.r, hx.q)
+	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
 	op.GeoM.Translate(float64(tilesizex*3/4)*float64(hx.q), float64(hx.r)*tilesizey)
-	if hx.q%2 == 0 {
+	if hx.q%2 != 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
 	screen.DrawImage(terrainimages[6], op)
+
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
 	var w, h int
@@ -739,7 +767,7 @@ func (g *Game) init() {
 	g.sprites.num = 2
 
 	w, h := spriteimages[0].Bounds().Dx(), spriteimages[0].Bounds().Dy()
-	x, y := 160, 310
+	x, y := 80, 210
 	vx, vy := 0, 0
 	a := 0
 	g.sprites.sprites[0] = &Sprite{
@@ -753,7 +781,7 @@ func (g *Game) init() {
 		image:       0,
 	}
 
-	x, y = 410, 254
+	x, y = 410, 300
 	vx, vy = 0, 0
 	a = 0
 	g.sprites.sprites[1] = &Sprite{
