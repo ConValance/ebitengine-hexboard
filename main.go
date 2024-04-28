@@ -24,15 +24,14 @@ const sizey = tilesizey / 2
 const floor1start = 4
 
 const (
-	terrainGrass	= 0
-	terrainWater	= 1
-	terrainMountain	= 2
-	terrainDesert	= 3
-	terrainRoad1	= 4
-	terrainRoad2	= 5
-	NumberOfTerrains= 6
+	terrainGrass     = 0
+	terrainWater     = 1
+	terrainMountain  = 2
+	terrainDesert    = 3
+	terrainRoad1     = 4
+	terrainRoad2     = 5
+	NumberOfTerrains = 6
 )
-
 
 var ngrid [][]*ANode
 var path *Stack[*ANode]
@@ -61,10 +60,10 @@ var flip0 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 }
 
 var terrainmap1 = [rows][columns]int{
-	{0, 0, 0, 0, 0, 0, 0, 7, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 5, 5, 6, 0, 0, 0, 0},
-	{0, 0, 5, 0, 0, 5, 0, 7, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 5, 5, 0, 0, 0, 0, 0},
+	{0, 0, 5, 0, 0, 5, 0, 0, 0, 0},
 	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
@@ -125,11 +124,11 @@ func init() {
 	//}
 	//var path *Stack[*ANode]
 	//var vstart Vector2
-	vstart.X=1
-	vstart.Y=2
+	vstart.X = 1
+	vstart.Y = 2
 	//var vend Vector2
-	vend.X=5
-	vend.Y=3
+	vend.X = 5
+	vend.Y = 3
 	path = astar.FindPath(vstart, vend)
 	//fmt.Println("pathlen: ", path.Count())
 	var step int
@@ -454,7 +453,7 @@ func (s *Stack[T]) Pop() T {
 
 func (s *Stack[T]) Count() int {
 	var length int
-	length=len(s.items)
+	length = len(s.items)
 	return length
 }
 
@@ -694,7 +693,7 @@ func pixel_to_hex(p point) hex {
 	var q float64 = layout_flat.b0*pt.x + layout_flat.b1*pt.y
 	//var r float64 = layout_flat.b2 * pt.x  + layout_flat.b3 * pt.y
 	var r float64 = layout_flat.b3 * pt.y * 0.85
-	
+
 	if int(q)%2 == 0 {
 		r = r * 0.85
 	}
@@ -729,7 +728,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	var hx hex
 
 	p.x = float64(g.cursor.x)
-	p.y = float64(g.cursor.y+tilesizey/2)
+	p.y = float64(g.cursor.y + tilesizey/2)
 	hx = pixel_to_hex(p)
 	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
@@ -738,7 +737,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
 	screen.DrawImage(terrainimages[6], op)
-
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
 	var w, h int
