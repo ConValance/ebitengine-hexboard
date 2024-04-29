@@ -132,22 +132,15 @@ func init() {
 
 	genGrid()
 	astar := NewAStar(ngrid)
-	//astar := AStar(ngrid)
+
 	fmt.Println("AStar colums, rows:", astar.GridCols, astar.GridRows)
-	//for y := 0; y < (rows); y++ {
-	//	for x := 0; x < (columns); x++ {
-	//		fmt.Println("Walkable pos", y," ",x," ",astar.Grid[y][x].Walkable)
-	//	}
-	//}
-	//var path *Stack[*ANode]
-	//var vstart Vector2
+
 	vstart.X = 1
 	vstart.Y = 2
-	//var vend Vector2
 	vend.X = 7
 	vend.Y = 0
 	path = astar.FindPath(vstart, vend)
-	//fmt.Println("pathlen: ", path.Count())
+	fmt.Println("pathlen: ", path.Count())
 	var step int
 	for i := 0; i < path.Count(); i++ {
 		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
