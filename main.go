@@ -10,8 +10,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-const screenWidth = 1200
-const screenHeight = 800
+const screenWidth = 800
+const screenHeight = 600
 const maxAngle = 256
 
 const columns = 10
@@ -791,7 +791,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	ebiten.SetWindowSize(1200, 800)
+	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("ebitengine-hexboard")
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
