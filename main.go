@@ -617,6 +617,7 @@ func genGrid() {
 			var tmpanode ANode
 			tmpanode.Position.X = float64(x)
 			tmpanode.Position.Y = float64(y)
+			/*
 			if terrainmap0[y][x] == int(terrainGrass) || terrainmap0[y][x] == int(terrainDesert) {
 				tmpanode.Walkable = true
 			} else {
@@ -624,6 +625,11 @@ func genGrid() {
 			}
 			if terrainmap1[y][x] == int(terrainRoad1) || terrainmap1[y][x] == int(terrainRoad2) {
 				tmpanode.Walkable = true
+			}
+			*/
+			tmpanode.Walkable = terrains[terrainmap0[y][x]].walkable
+			if(terrainmap1[y][x]> 0){ 
+				tmpanode.Walkable = terrains[terrainmap1[y][x]].walkable
 			}
 			anodes = append(anodes, &tmpanode)
 		}
