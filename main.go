@@ -672,8 +672,8 @@ func pixel_to_hex(p point) hex {
 	//var r float64 = layout_flat.b2 * pt.x  + layout_flat.b3 * pt.y
 	var r float64 = layout_flat.b3 * pt.y * 0.85
 
-	if int(q)%2 == 0 {
-		r = r * 0.85
+	if int(q)%2 != 0 {
+		r = r-0.5
 	}
 	//return hex{int(q), int(r)}
 	return hex_round(q, r, -q-r)
