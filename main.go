@@ -680,8 +680,8 @@ func pixel_to_hex(p point) hex {
 }
 
 func get_terrain_nr(n string) int {
-	for i:=0; i<16; i++{
-		if terrains[i].name==n {
+	for i := 0; i < 16; i++ {
+		if terrains[i].name == n {
 			return i
 		}
 	}
@@ -787,11 +787,11 @@ func (g *Game) init() {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 800, 600
+	return 1200, 800
 }
 
 func main() {
-	ebiten.SetWindowSize(800, 600)
+	ebiten.SetWindowSize(1200, 800)
 	ebiten.SetWindowTitle("ebitengine-hexboard")
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
