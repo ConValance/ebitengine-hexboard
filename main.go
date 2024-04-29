@@ -679,11 +679,22 @@ func pixel_to_hex(p point) hex {
 	return hex_round(q, r, -q-r)
 }
 
+func get_terrain_nr(n string) int {
+	for i:=0; i<16; i++{
+		if terrains[i].name==n {
+			return i
+		}
+	}
+	return -1
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
+
+	// draw the hexboard
 	drawHex(screen)
 
-	//var step int
+	// draw the green steps of the pathfinding
 	for i := 0; i < path.Count(); i++ {
 		//fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
 		op.GeoM.Reset()
@@ -702,14 +713,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	screen.DrawImage(terrainimages[8], op)
 
+	// draw the mousepos and the hextile to screen
 	var p point
 	var hx hex
-
 	p.x = float64(g.cursor.x)
 	p.y = float64(g.cursor.y + tilesizey/2)
 	hx = pixel_to_hex(p)
 	msg := fmt.Sprintf("mouseposition (%d, %d) =tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
+	// draw the selected hextile
 	op.GeoM.Reset()
 	op.GeoM.Translate(float64(tilesizex*3/4)*float64(hx.q), float64(hx.r)*tilesizey)
 	if hx.q%2 != 0 {
@@ -775,11 +787,11 @@ func (g *Game) init() {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 1200, 800
+	return 800, 600
 }
 
 func main() {
-	ebiten.SetWindowSize(1200, 800)
+	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("ebitengine-hexboard")
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
