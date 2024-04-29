@@ -23,23 +23,11 @@ const tilesizey = 94
 const sizey = tilesizey / 2
 const floor1start = 4
 
-const (
-	terrainGrass     = 0
-	terrainWater     = 1
-	terrainMountain  = 2
-	terrainDesert    = 3
-	terrainRoad1     = 4
-	terrainRoad2     = 5
-	terrainRoad3	 = 6
-	NumberOfTerrains = 7
-)
-
 var ngrid [][]*ANode
 var path *Stack[*ANode]
 var vstart, vend Vector2
 
 var terrainimages []*ebiten.Image
-//var terrainimagenames [16]string
 var terrains [16]Terrain
 var spriteimages []*ebiten.Image
 var spriteimagenames [16]string
@@ -79,71 +67,47 @@ var flip1 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 }
 
 func init() {
-	/*
-	terrainimagenames[0] = "grass.png"
-	terrainimagenames[1] = "water.png"
-	terrainimagenames[2] = "mountain.png"
-	terrainimagenames[3] = "desert.png"
-	terrainimagenames[4] = "road1.png"
-	terrainimagenames[5] = "road2.png"
-	terrainimagenames[6] = "companygreen.png"
-	terrainimagenames[7] = "companyred.png"
-	terrainimagenames[8] = "pathfinder.png"
-	*/
-	
-	terrains[0].name="Grass"
+
+	terrains[0].name = "Grass"
 	terrains[0].filename = "grass.png"
 	terrains[0].walkable = true
 
-	terrains[1].name="Water"
+	terrains[1].name = "Water"
 	terrains[1].filename = "water.png"
 	terrains[1].walkable = false
 
-	terrains[2].name="Mountain"
+	terrains[2].name = "Mountain"
 	terrains[2].filename = "mountain.png"
 	terrains[2].walkable = false
 
-	terrains[3].name="desert"
+	terrains[3].name = "desert"
 	terrains[3].filename = "desert.png"
 	terrains[3].walkable = true
 
-	terrains[4].name="Road1"
+	terrains[4].name = "Road1"
 	terrains[4].filename = "road1.png"
 	terrains[4].walkable = true
 
-	terrains[5].name="Road2"
+	terrains[5].name = "Road2"
 	terrains[5].filename = "road2.png"
 	terrains[5].walkable = true
 
-	terrains[6].name="Road3"
+	terrains[6].name = "Road3"
 	terrains[6].filename = "road3.png"
 	terrains[6].walkable = true
 
-	terrains[7].name="Selection"
+	terrains[7].name = "Selection"
 	terrains[7].filename = "selection.png"
 	terrains[7].walkable = true
 
-	terrains[8].name="Pathfinder"
+	terrains[8].name = "Pathfinder"
 	terrains[8].filename = "pathfinder.png"
 	terrains[8].walkable = true
-
-	/*
-	terrains[0].name="Grass"
-	terrains[0].filename = "water.png"
-	terrains[0].filename = "mountain.png"
-	terrains[0].filename = "desert.png"
-	terrains[0].filename = "road1.png"
-	terrains[0].filename = "road2.png"
-	terrains[0].filename = "companygreen.png"
-	terrains[0].filename = "companyred.png"
-	terrains[0].filename = "pathfinder.png"
-	*/
 
 	for i := 0; i < 9; i++ {
 		var err error
 		var tmpimage *ebiten.Image
 		var tmpstring string
-		//tmpstring = "resources/terrain/" + terrainimagenames[i]
 		tmpstring = "resources/terrain/" + terrains[i].filename
 		tmpimage, _, err = ebitenutil.NewImageFromFile(tmpstring)
 		if err != nil {
@@ -234,7 +198,7 @@ type Orientation struct {
 }
 
 type Terrain struct {
-	name string
+	name     string
 	filename string
 	walkable bool
 }
@@ -617,18 +581,8 @@ func genGrid() {
 			var tmpanode ANode
 			tmpanode.Position.X = float64(x)
 			tmpanode.Position.Y = float64(y)
-			/*
-			if terrainmap0[y][x] == int(terrainGrass) || terrainmap0[y][x] == int(terrainDesert) {
-				tmpanode.Walkable = true
-			} else {
-				tmpanode.Walkable = false
-			}
-			if terrainmap1[y][x] == int(terrainRoad1) || terrainmap1[y][x] == int(terrainRoad2) {
-				tmpanode.Walkable = true
-			}
-			*/
 			tmpanode.Walkable = terrains[terrainmap0[y][x]].walkable
-			if(terrainmap1[y][x]> 0){ 
+			if terrainmap1[y][x] > 0 {
 				tmpanode.Walkable = terrains[terrainmap1[y][x]].walkable
 			}
 			anodes = append(anodes, &tmpanode)
@@ -645,7 +599,6 @@ func drawHex(screen *ebiten.Image) {
 	for y := 0; y < (rows); y++ {
 		for x := 0; x < (columns); x++ {
 			op.GeoM.Reset()
-
 			if flip0[y][x] > 0 {
 				if flip0[y][x] == 1 {
 					op.GeoM.Scale(-1, 1)
@@ -668,8 +621,8 @@ func drawHex(screen *ebiten.Image) {
 			}
 			screen.DrawImage(terrainimages[terrainmap0[y][x]], op)
 
+			// floor 1
 			op.GeoM.Reset()
-
 			if flip1[y][x] > 0 {
 				if flip1[y][x] == 1 {
 					op.GeoM.Scale(-1, 1)
@@ -695,39 +648,6 @@ func drawHex(screen *ebiten.Image) {
 			}
 		}
 	}
-
-	// floor 1
-	/*
-		for y := 0; y < (rows); y++ {
-			for x := 0; x < (columns); x++ {
-				op.GeoM.Reset()
-
-				if flip1[y][x] > 0 {
-					if flip1[y][x] == 1 {
-						op.GeoM.Scale(-1, 1)
-						op.GeoM.Translate(tilewidth, 0)
-					} else {
-						if flip1[y][x] == 2 {
-							op.GeoM.Scale(1, -1)
-							op.GeoM.Translate(0, tilewidth)
-						} else {
-							if flip1[y][x] == 3 {
-								op.GeoM.Scale(-1, -1)
-								op.GeoM.Translate(tilewidth, tilewidth)
-							}
-						}
-					}
-				}
-				op.GeoM.Translate(float64(tilesizex*3/4)*float64(x), float64(y)*tilesizey)
-				if x%2 == 0 {
-					op.GeoM.Translate(0, float64(tilesizey/2))
-				}
-				if terrainmap1[y][x] >= floor1start {
-					screen.DrawImage(terrainimages[terrainmap1[y][x]], op)
-				}
-			}
-		}
-	*/
 
 }
 
@@ -789,14 +709,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	screen.DrawImage(terrainimages[8], op)
 
-
 	var p point
 	var hx hex
 
 	p.x = float64(g.cursor.x)
 	p.y = float64(g.cursor.y + tilesizey/2)
 	hx = pixel_to_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d) = tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
+	msg := fmt.Sprintf("mouseposition (%d, %d) =tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
 	op.GeoM.Reset()
 	op.GeoM.Translate(float64(tilesizex*3/4)*float64(hx.q), float64(hx.r)*tilesizey)
