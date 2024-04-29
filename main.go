@@ -30,7 +30,8 @@ const (
 	terrainDesert    = 3
 	terrainRoad1     = 4
 	terrainRoad2     = 5
-	NumberOfTerrains = 6
+	terrainRoad3	 = 6
+	NumberOfTerrains = 7
 )
 
 var ngrid [][]*ANode
@@ -38,7 +39,8 @@ var path *Stack[*ANode]
 var vstart, vend Vector2
 
 var terrainimages []*ebiten.Image
-var terrainimagenames [16]string
+//var terrainimagenames [16]string
+var terrains [16]Terrain
 var spriteimages []*ebiten.Image
 var spriteimagenames [16]string
 
@@ -63,7 +65,7 @@ var terrainmap1 = [rows][columns]int{
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 5, 5, 0, 0, 0, 0, 0},
-	{0, 0, 5, 0, 0, 5, 0, 0, 0, 0},
+	{0, 6, 5, 0, 0, 5, 0, 0, 0, 0},
 	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
@@ -77,7 +79,7 @@ var flip1 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 }
 
 func init() {
-
+	/*
 	terrainimagenames[0] = "grass.png"
 	terrainimagenames[1] = "water.png"
 	terrainimagenames[2] = "mountain.png"
@@ -87,11 +89,62 @@ func init() {
 	terrainimagenames[6] = "companygreen.png"
 	terrainimagenames[7] = "companyred.png"
 	terrainimagenames[8] = "pathfinder.png"
+	*/
+	
+	terrains[0].name="Grass"
+	terrains[0].filename = "grass.png"
+	terrains[0].walkable = true
+
+	terrains[1].name="Water"
+	terrains[1].filename = "water.png"
+	terrains[1].walkable = false
+
+	terrains[2].name="Mountain"
+	terrains[2].filename = "mountain.png"
+	terrains[2].walkable = false
+
+	terrains[3].name="desert"
+	terrains[3].filename = "desert.png"
+	terrains[3].walkable = true
+
+	terrains[4].name="Road1"
+	terrains[4].filename = "road1.png"
+	terrains[4].walkable = true
+
+	terrains[5].name="Road2"
+	terrains[5].filename = "road2.png"
+	terrains[5].walkable = true
+
+	terrains[6].name="Road3"
+	terrains[6].filename = "road3.png"
+	terrains[6].walkable = true
+
+	terrains[7].name="Selection"
+	terrains[7].filename = "selection.png"
+	terrains[7].walkable = true
+
+	terrains[8].name="Pathfinder"
+	terrains[8].filename = "pathfinder.png"
+	terrains[8].walkable = true
+
+	/*
+	terrains[0].name="Grass"
+	terrains[0].filename = "water.png"
+	terrains[0].filename = "mountain.png"
+	terrains[0].filename = "desert.png"
+	terrains[0].filename = "road1.png"
+	terrains[0].filename = "road2.png"
+	terrains[0].filename = "companygreen.png"
+	terrains[0].filename = "companyred.png"
+	terrains[0].filename = "pathfinder.png"
+	*/
+
 	for i := 0; i < 9; i++ {
 		var err error
 		var tmpimage *ebiten.Image
 		var tmpstring string
-		tmpstring = "resources/terrain/" + terrainimagenames[i]
+		//tmpstring = "resources/terrain/" + terrainimagenames[i]
+		tmpstring = "resources/terrain/" + terrains[i].filename
 		tmpimage, _, err = ebitenutil.NewImageFromFile(tmpstring)
 		if err != nil {
 			log.Fatal(err)
@@ -178,6 +231,12 @@ type cube struct {
 type Orientation struct {
 	f0, f1, f2, f3 float64
 	b0, b1, b2, b3 float64
+}
+
+type Terrain struct {
+	name string
+	filename string
+	walkable bool
 }
 
 type Sprite struct {
@@ -724,6 +783,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	screen.DrawImage(terrainimages[8], op)
 
+
 	var p point
 	var hx hex
 
@@ -737,7 +797,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if hx.q%2 != 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
-	screen.DrawImage(terrainimages[6], op)
+	screen.DrawImage(terrainimages[7], op)
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
 	var w, h int
