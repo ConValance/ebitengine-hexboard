@@ -477,16 +477,11 @@ func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
 	var temp []*ANode
 	var dir Direction
 
-	// fmt.Println("grid count:", len(Grid), "grid 0 0", Grid[1][1].Position.String())
 	for i := 0; i < 6; i++ {
 		m := neighbor(n.Position, dir)
-		// fmt.Println("getadjacent node:", n.Position.String(), " dir:", dir.String(), "  neighbor:", m.String())
 		if m.X > -1 && m.Y > -1 {
 			temp = append(temp, a.Grid[int(m.X)][int(m.Y)])
 		}
-		// if hex.newworld.GetHeight(int(n.x), int(n.y)) != h {
-		//     return nil
-		// }
 		dir = RotateDirection(dir, 1)
 	}
 	return temp
@@ -673,7 +668,7 @@ func pixel_to_hex(p point) hex {
 	var r float64 = layout_flat.b3 * pt.y * 0.85
 
 	if int(q)%2 != 0 {
-		r = r-0.5
+		r = r - 0.5
 	}
 	//return hex{int(q), int(r)}
 	return hex_round(q, r, -q-r)
