@@ -587,7 +587,7 @@ func genGrid() {
 func drawHex(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
-	// flattop “even-r” horizontal layout shoves even rows right
+	// flattop horizontal layout shoves oddq
 	// floor 0
 	for y := 0; y < (rows); y++ {
 		for x := 0; x < (columns); x++ {
