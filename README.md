@@ -26,7 +26,8 @@ screenshot:
 		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
      }
     ```
-- changed layout to oddq. now hexcoordinates are correct and hexpathfinding works (see green path over the bridge)!!    
+- changed layout to oddq. now hexcoordinates are correct and hexpathfinding works (see green path over the bridge)!!
+- mouseclick right for new target    
   
   
     
