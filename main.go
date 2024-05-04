@@ -547,7 +547,7 @@ func (g *Game) Update() error {
 		hx = pixel_to_hex(p)
 		for i := 0; i < g.sprites.num; i++ {
 			p.x = float64(g.sprites.sprites[i].x + tilesizex)
-			p.y = float64(g.sprites.sprites[i].y)
+			p.y = float64(g.sprites.sprites[i].y-tilesizey/2)
 			sx = pixel_to_hex(p)
 			if int(sx.q)%2 != 0 {
 				sx.r++
@@ -555,17 +555,26 @@ func (g *Game) Update() error {
 			if hx == sx {
 				fmt.Println("sprite clicked ", hx.q, hx.r)
 			}
+			p = hex_to_pixel(hx)
+			fmt.Println("pixelpos: ", p.x," ", p.y)
+			g.setspritepos(0, int(p.x), int(p.y))
+			vstart.X = float64(hx.q)
+			vstart.Y = float64(hx.r)
 		}
 	} else if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
 		p.x = float64(g.cursor.x)
 		p.y = float64(g.cursor.y)
 		hx = pixel_to_hex(p)
-		vstart.X = 1
-		vstart.Y = 2
+		//vstart.X = 1
+		//vstart.Y = 2
 		vend.X = float64(hx.q)
 		vend.Y = float64(hx.r)
 		//astar := NewAStar(ngrid)
 		path = astar.FindPath(vstart, vend)
+		hx.q=int(path.items[0].Position.X)
+		hx.r=int(path.items[0].Position.Y)
+		p = hex_to_pixel(hx)
+		g.setspritepos(1, int(p.x), int(p.y))
 	}
 
 	g.sprites.Update()
@@ -685,6 +694,17 @@ func pixel_to_hex(p point) hex {
 	return hex_round(q, r, -q-r)
 }
 
+
+func hex_to_pixel(h hex) point {
+	var x float64 = float64(tilesizex*3/4)*float64(h.q)
+	var y float64 = float64(h.r)*float64(tilesizey)
+	if h.q%2 != 0 {
+		y = y + float64(tilesizey/2)
+	}
+	return point{x, y}
+}
+
+
 func get_terrain_nr(n string) int {
 	for i := 0; i < 16; i++ {
 		if terrains[i].name == n {
@@ -751,6 +771,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DebugPrint(screen, msg)
 
+}
+
+func (g *Game) setspritepos(nr int, xp int, yp int){
+	w, h := spriteimages[0].Bounds().Dx(), spriteimages[0].Bounds().Dy()
+	vx, vy := 0, 0
+	a := 0
+	g.sprites.sprites[nr] = &Sprite{
+		imageWidth:  w,
+		imageHeight: h,
+		x:           xp,
+		y:           yp-25,
+		vx:          vx,
+		vy:          vy,
+		angle:       a,
+		image:       nr,
+	}
 }
 
 func (g *Game) init() {
