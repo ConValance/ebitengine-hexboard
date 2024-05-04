@@ -26,6 +26,7 @@ const floor1start = 4
 var ngrid [][]*ANode
 var path *Stack[*ANode]
 var vstart, vend Vector2
+var astar *AStar
 
 var terrainimages []*ebiten.Image
 var terrains [16]Terrain
@@ -53,15 +54,15 @@ var terrainmap1 = [rows][columns]int{
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 5, 5, 0, 0, 0, 0, 0},
-	{0, 6, 5, 0, 0, 5, 0, 0, 0, 0},
+	{0, 6, 5, 0, 0, 0, 0, 0, 0, 0},
 	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
 }
 var flip1 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 3, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+	{0, 0, 0, 3, 0, 1, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
@@ -131,7 +132,7 @@ func init() {
 	}
 
 	genGrid()
-	astar := NewAStar(ngrid)
+	astar = NewAStar(ngrid)
 
 	fmt.Println("AStar colums, rows:", astar.GridCols, astar.GridRows)
 
@@ -555,6 +556,16 @@ func (g *Game) Update() error {
 				fmt.Println("sprite clicked ", hx.q, hx.r)
 			}
 		}
+	} else if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
+		p.x = float64(g.cursor.x)
+		p.y = float64(g.cursor.y)
+		hx = pixel_to_hex(p)
+		vstart.X = 1
+		vstart.Y = 2
+		vend.X = float64(hx.q)
+		vend.Y = float64(hx.r)
+		//astar := NewAStar(ngrid)
+		path = astar.FindPath(vstart, vend)
 	}
 
 	g.sprites.Update()
@@ -714,7 +725,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	p.x = float64(g.cursor.x)
 	p.y = float64(g.cursor.y + tilesizey/2)
 	hx = pixel_to_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d) =tile(%d, %d)", g.cursor.x, g.cursor.y, hx.q, hx.r)
+	msg := fmt.Sprintf("mouseposition (%d, %d) =tile(%d, %d) - right click for new target.", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
 	// draw the selected hextile
 	op.GeoM.Reset()
