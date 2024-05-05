@@ -51,18 +51,18 @@ var flip0 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 }
 
 var terrainmap1 = [rows][columns]int{
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 7, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 5, 5, 0, 0, 0, 0, 0},
-	{0, 6, 5, 0, 0, 0, 0, 0, 0, 0},
-	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 4, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 6, 5, 0, 0, 0, 0, 7, 7, 0},
+	{0, 4, 0, 0, 0, 0, 0, 0, 7, 0},
+	{7, 4, 0, 0, 0, 0, 0, 0, 0, 0},
 }
 var flip1 = [rows][columns]int{ // flipx=1, flipy=2, both=3
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 3, 0, 1, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
@@ -97,15 +97,19 @@ func init() {
 	terrains[6].filename = "road3.png"
 	terrains[6].walkable = true
 
-	terrains[7].name = "Selection"
-	terrains[7].filename = "selection.png"
+	terrains[7].name = "Tree"
+	terrains[7].filename = "tree.png"
 	terrains[7].walkable = true
 
-	terrains[8].name = "Pathfinder"
-	terrains[8].filename = "pathfinder.png"
+	terrains[8].name = "Selection"
+	terrains[8].filename = "selection.png"
 	terrains[8].walkable = true
 
-	for i := 0; i < 9; i++ {
+	terrains[9].name = "Pathfinder"
+	terrains[9].filename = "pathfinder.png"
+	terrains[9].walkable = true
+
+	for i := 0; i < 10; i++ {
 		var err error
 		var tmpimage *ebiten.Image
 		var tmpstring string
@@ -738,7 +742,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		if int(path.items[i].Position.X)%2 != 0 {
 			op.GeoM.Translate(0, float64(tilesizey/2))
 		}
-		screen.DrawImage(terrainimages[8], op)
+		screen.DrawImage(terrainimages[9], op)
 		//step = i
 	}
 	//fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
@@ -747,7 +751,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if int(vstart.X)%2 != 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
-	screen.DrawImage(terrainimages[8], op)
+	screen.DrawImage(terrainimages[9], op)
 
 	// draw the mousepos and the hextile to screen
 	var p point
@@ -763,7 +767,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if hx.q%2 != 0 {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
-	screen.DrawImage(terrainimages[7], op)
+	screen.DrawImage(terrainimages[8], op)
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
 	var w, h int
