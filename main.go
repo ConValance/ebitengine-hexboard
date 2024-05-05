@@ -615,24 +615,30 @@ func genGrid() {
 	}
 }
 
-func drawHex(screen *ebiten.Image) {
+func drawHex(screen *ebiten.Image, floor int) {
 	op := &ebiten.DrawImageOptions{}
-
+	var flip int
 	// flattop horizontal layout shoves oddq
 	// floor 0
 	for y := 0; y < (rows); y++ {
 		for x := 0; x < (columns); x++ {
+			switch floor {
+			case 0:
+				flip = flip0[y][x]
+			case 1:
+				flip = flip1[y][x]
+			}
 			op.GeoM.Reset()
-			if flip0[y][x] > 0 {
-				if flip0[y][x] == 1 {
+			if flip > 0 {
+				if flip == 1 {
 					op.GeoM.Scale(-1, 1)
 					op.GeoM.Translate(tilewidth, 0)
 				} else {
-					if flip0[y][x] == 2 {
+					if flip == 2 {
 						op.GeoM.Scale(1, -1)
 						op.GeoM.Translate(0, tilewidth)
 					} else {
-						if flip0[y][x] == 3 {
+						if flip == 3 {
 							op.GeoM.Scale(-1, -1)
 							op.GeoM.Translate(tilewidth, tilewidth)
 						}
@@ -643,8 +649,16 @@ func drawHex(screen *ebiten.Image) {
 			if x%2 != 0 {
 				op.GeoM.Translate(0, float64(tilesizey/2))
 			}
-			screen.DrawImage(terrainimages[terrainmap0[y][x]], op)
+			switch floor {
+			case 0:
+				screen.DrawImage(terrainimages[terrainmap0[y][x]], op)
+			case 1:
+				if terrainmap1[y][x] >= floor1start {
+					screen.DrawImage(terrainimages[terrainmap1[y][x]], op)
+				}
+			}
 
+			/*
 			// floor 1
 			op.GeoM.Reset()
 			if flip1[y][x] > 0 {
@@ -670,6 +684,7 @@ func drawHex(screen *ebiten.Image) {
 			if terrainmap1[y][x] >= floor1start {
 				screen.DrawImage(terrainimages[terrainmap1[y][x]], op)
 			}
+			*/
 		}
 	}
 
@@ -732,7 +747,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
 	// draw the hexboard
-	drawHex(screen)
+	drawHex(screen, 0)
 
 	// draw the green steps of the pathfinding
 	for i := 0; i < path.Count(); i++ {
@@ -768,6 +783,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(0, float64(tilesizey/2))
 	}
 	screen.DrawImage(terrainimages[8], op)
+
+	// draw the hexboard
+	drawHex(screen, 1)
+
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
 	var w, h int
