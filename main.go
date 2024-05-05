@@ -547,7 +547,7 @@ func (g *Game) Update() error {
 		hx = pixel_to_hex(p)
 		for i := 0; i < g.sprites.num; i++ {
 			p.x = float64(g.sprites.sprites[i].x + tilesizex)
-			p.y = float64(g.sprites.sprites[i].y-tilesizey/2)
+			p.y = float64(g.sprites.sprites[i].y - tilesizey/2)
 			sx = pixel_to_hex(p)
 			if int(sx.q)%2 != 0 {
 				sx.r++
@@ -556,7 +556,7 @@ func (g *Game) Update() error {
 				fmt.Println("sprite clicked ", hx.q, hx.r)
 			}
 			p = hex_to_pixel(hx)
-			fmt.Println("pixelpos: ", p.x," ", p.y)
+			//fmt.Println("pixelpos: ", p.x," ", p.y)
 			g.setspritepos(0, int(p.x), int(p.y))
 			vstart.X = float64(hx.q)
 			vstart.Y = float64(hx.r)
@@ -571,8 +571,8 @@ func (g *Game) Update() error {
 		vend.Y = float64(hx.r)
 		//astar := NewAStar(ngrid)
 		path = astar.FindPath(vstart, vend)
-		hx.q=int(path.items[0].Position.X)
-		hx.r=int(path.items[0].Position.Y)
+		hx.q = int(path.items[0].Position.X)
+		hx.r = int(path.items[0].Position.Y)
 		p = hex_to_pixel(hx)
 		g.setspritepos(1, int(p.x), int(p.y))
 	}
@@ -694,16 +694,14 @@ func pixel_to_hex(p point) hex {
 	return hex_round(q, r, -q-r)
 }
 
-
 func hex_to_pixel(h hex) point {
-	var x float64 = float64(tilesizex*3/4)*float64(h.q)
-	var y float64 = float64(h.r)*float64(tilesizey)
+	var x float64 = float64(tilesizex*3/4) * float64(h.q)
+	var y float64 = float64(h.r) * float64(tilesizey)
 	if h.q%2 != 0 {
 		y = y + float64(tilesizey/2)
 	}
 	return point{x, y}
 }
-
 
 func get_terrain_nr(n string) int {
 	for i := 0; i < 16; i++ {
@@ -745,7 +743,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	p.x = float64(g.cursor.x)
 	p.y = float64(g.cursor.y + tilesizey/2)
 	hx = pixel_to_hex(p)
-	msg := fmt.Sprintf("mouseposition (%d, %d) =tile(%d, %d) - right click for new target.", g.cursor.x, g.cursor.y, hx.q, hx.r)
+	msg := fmt.Sprintf("mouseposition (%d, %d) =tile(%d, %d) - left mouseclick for new startposition, right click for new targetposition.", g.cursor.x, g.cursor.y, hx.q, hx.r)
 
 	// draw the selected hextile
 	op.GeoM.Reset()
@@ -773,7 +771,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 }
 
-func (g *Game) setspritepos(nr int, xp int, yp int){
+func (g *Game) setspritepos(nr int, xp int, yp int) {
 	w, h := spriteimages[0].Bounds().Dx(), spriteimages[0].Bounds().Dy()
 	vx, vy := 0, 0
 	a := 0
@@ -781,7 +779,7 @@ func (g *Game) setspritepos(nr int, xp int, yp int){
 		imageWidth:  w,
 		imageHeight: h,
 		x:           xp,
-		y:           yp-25,
+		y:           yp - 25,
 		vx:          vx,
 		vy:          vy,
 		angle:       a,
