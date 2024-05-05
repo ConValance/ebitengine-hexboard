@@ -28,7 +28,7 @@ screenshot:
     ```
 - changed layout to oddq. now hexcoordinates are correct and hexpathfinding works (see green path over the bridge)!!
 - mouseclick left for new startpos, mouseclick right for new target
-- check if path found    
+- check if path found, new part for floor1 a tree        
   
   
     
