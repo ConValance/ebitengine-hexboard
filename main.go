@@ -141,14 +141,17 @@ func init() {
 	vend.X = 7
 	vend.Y = 0
 	path = astar.FindPath(vstart, vend)
-	fmt.Println("pathlen: ", path.Count())
-	var step int
-	for i := 0; i < path.Count(); i++ {
-		fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
-		step = i
+	if path != nil {
+		fmt.Println("pathlen: ", path.Count())
+		var step int
+		for i := 0; i < path.Count(); i++ {
+			fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
+			step = i
+		}
+		fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
+	} else{
+		fmt.Println("no path found!")
 	}
-	fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
-
 }
 
 type touch struct {
@@ -470,8 +473,12 @@ func (s *Stack[T]) Pop() T {
 
 func (s *Stack[T]) Count() int {
 	var length int
-	length = len(s.items)
-	return length
+	if s != nil{
+		length = len(s.items)
+		return length
+	} else {
+		return -1
+	}
 }
 
 func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
@@ -570,11 +577,16 @@ func (g *Game) Update() error {
 		vend.X = float64(hx.q)
 		vend.Y = float64(hx.r)
 		//astar := NewAStar(ngrid)
+
 		path = astar.FindPath(vstart, vend)
-		hx.q = int(path.items[0].Position.X)
-		hx.r = int(path.items[0].Position.Y)
-		p = hex_to_pixel(hx)
-		g.setspritepos(1, int(p.x), int(p.y))
+		if path != nil {
+			hx.q = int(path.items[0].Position.X)
+			hx.r = int(path.items[0].Position.Y)
+			p = hex_to_pixel(hx)
+			g.setspritepos(1, int(p.x), int(p.y))
+		} else{
+			fmt.Println("no path found!")
+		}
 	}
 
 	g.sprites.Update()
