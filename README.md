@@ -1,6 +1,6 @@
 # ebitengine-hexboard
 
-a simple example for a hexboard with ebitengine (simple cause for example only few biomes for floor0 and only some bridgeparts for floor1).    
+a simple example for a hexboard with ebitengine (simple cause for example only few biomes for floor0 and only some parts for floor1).    
 the example draws two floors and you can flip the tiles x and y.    
 the hex-pathfinding works (see green path over the bridge).    
 
