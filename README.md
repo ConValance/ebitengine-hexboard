@@ -11,10 +11,6 @@ screenshot:
 ![Pic1](screenshotsmall.jpg)
 
 # new changes:     
-- mousecoordinates and corresponding hextile
-- selected hextile greenlighted
-- first sprites
-- recognition of mouseclicked sprite
 - added astar pathfinding for hexboard ... program seems to turn into a jungle...maybe i should put the pathfinding later to other file/library?...
   from the test in init:        
     ```
