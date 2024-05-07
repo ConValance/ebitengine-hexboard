@@ -3,7 +3,7 @@
 a simple example for a hexboard (simple cause for example only few biomes for floor0 and only some parts for floor1).    
 the example draws two floors, you can flip the tiles x, y.  the hexpathfinding works (see green path over the bridge).    
 the pathfinding is now in astarhexlib local library. for working import the name of maindirectory should be "hexboard"      
-or change the name of the directory in main.og in import from "hexboard/astarhexlib" to "yourdirectory/astarhexlib"        
+or change the name of the directory in main.go in import from "hexboard/astarhexlib" to "yourdirectory/astarhexlib"        
 
 ebitengine: https://ebitengine.org/    
 good information for hex: https://www.redblobgames.com/grids/hexagons/    
