@@ -12,7 +12,6 @@ screenshot:
 ![Pic1](screenshotsmall.jpg)
 
 # new changes:     
-- changed layout to oddq. now hexcoordinates are correct and hexpathfinding works (see green path over the bridge)!!
 - mouseclick left for new startpos, mouseclick right for new target
 - check if path found, new part for floor1 a tree, floor as parameter
 - changed the pathfinding to a local library in file astarhexlib.go    
