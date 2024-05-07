@@ -246,7 +246,7 @@ func indexOf[T any](slice []*T, predicate func(*T) bool) int {
 	}
 	return -1
 }
-
+/*
 type Stack[T any] struct {
 	items []T
 }
@@ -276,6 +276,7 @@ func (s *Stack[T]) Count() int {
 		return -1
 	}
 }
+*/
 
 func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
 	var temp []*ANode
