@@ -26,7 +26,7 @@ const sizey = tilesizey / 2
 const floor1start = 4
 
 var ngrid [][]*astarhexlib.ANode
-//var path *Stack[*ANode]
+
 var path []*astarhexlib.ANode
 var vstart, vend astarhexlib.Vector2
 var astar *astarhexlib.AStar
@@ -149,10 +149,8 @@ func init() {
 	vend.Y = 0
 	path = astar.FindPath(vstart, vend)
 	if path != nil {
-		//fmt.Println("pathlen: ", path.Count())
 		var step int
-		//for i := 0; i < path.Count(); i++ {
-			for i := 0; i < len(path); i++ {
+		for i := 0; i < len(path); i++ {
 			fmt.Println("path Nr:", i, " x:", path[i].Position.X, " y:", path[i].Position.Y)
 			step = i
 		}
@@ -218,7 +216,6 @@ type Sprite struct {
 	angle       int
 	image       int
 }
-
 
 func (s *Sprite) Update() {
 	s.x += s.vx
@@ -377,33 +374,6 @@ func drawHex(screen *ebiten.Image, floor int) {
 				}
 			}
 
-			/*
-				// floor 1
-				op.GeoM.Reset()
-				if flip1[y][x] > 0 {
-					if flip1[y][x] == 1 {
-						op.GeoM.Scale(-1, 1)
-						op.GeoM.Translate(tilewidth, 0)
-					} else {
-						if flip1[y][x] == 2 {
-							op.GeoM.Scale(1, -1)
-							op.GeoM.Translate(0, tilewidth)
-						} else {
-							if flip1[y][x] == 3 {
-								op.GeoM.Scale(-1, -1)
-								op.GeoM.Translate(tilewidth, tilewidth)
-							}
-						}
-					}
-				}
-				op.GeoM.Translate(float64(tilesizex*3/4)*float64(x), float64(y)*tilesizey)
-				if x%2 != 0 {
-					op.GeoM.Translate(0, float64(tilesizey/2))
-				}
-				if terrainmap1[y][x] >= floor1start {
-					screen.DrawImage(terrainimages[terrainmap1[y][x]], op)
-				}
-			*/
 		}
 	}
 
