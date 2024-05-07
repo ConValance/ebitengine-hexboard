@@ -8,6 +8,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+
+	"hexboard/astarhexlib"
 )
 
 const screenWidth = 800
@@ -23,10 +25,11 @@ const tilesizey = 94
 const sizey = tilesizey / 2
 const floor1start = 4
 
-var ngrid [][]*ANode
-var path *Stack[*ANode]
-var vstart, vend Vector2
-var astar *AStar
+var ngrid [][]*astarhexlib.ANode
+//var path *Stack[*ANode]
+var path []*astarhexlib.ANode
+var vstart, vend astarhexlib.Vector2
+var astar *astarhexlib.AStar
 
 var terrainimages []*ebiten.Image
 var terrains [16]Terrain
@@ -81,7 +84,7 @@ func init() {
 	terrains[2].filename = "mountain.png"
 	terrains[2].walkable = false
 
-	terrains[3].name = "desert"
+	terrains[3].name = "Desert"
 	terrains[3].filename = "desert.png"
 	terrains[3].walkable = true
 
@@ -136,7 +139,7 @@ func init() {
 	}
 
 	genGrid()
-	astar = NewAStar(ngrid)
+	astar = astarhexlib.NewAStar(ngrid)
 
 	fmt.Println("AStar colums, rows:", astar.GridCols, astar.GridRows)
 
@@ -146,14 +149,15 @@ func init() {
 	vend.Y = 0
 	path = astar.FindPath(vstart, vend)
 	if path != nil {
-		fmt.Println("pathlen: ", path.Count())
+		//fmt.Println("pathlen: ", path.Count())
 		var step int
-		for i := 0; i < path.Count(); i++ {
-			fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
+		//for i := 0; i < path.Count(); i++ {
+			for i := 0; i < len(path); i++ {
+			fmt.Println("path Nr:", i, " x:", path[i].Position.X, " y:", path[i].Position.Y)
 			step = i
 		}
 		fmt.Println("and last step Nr:", step+1, " x:", vstart.X, " y:", vstart.Y)
-	} else{
+	} else {
 		fmt.Println("no path found!")
 	}
 }
@@ -215,291 +219,6 @@ type Sprite struct {
 	image       int
 }
 
-// --- from here pathfinding astar hex ------------------------------------------------
-
-type Direction int
-
-const (
-	North Direction = iota
-	NorthEast
-	SouthEast
-	South
-	SouthWest
-	NorthWest
-	NumberOfDirections
-)
-
-func RotateDirection(direction Direction, amount int) Direction {
-	direction = direction + Direction(amount)
-
-	var n_dir int = int(direction) % int(NumberOfDirections)
-	if n_dir < 0 {
-		n_dir = int(NumberOfDirections) + n_dir
-	}
-	direction = Direction(n_dir)
-
-	return direction
-}
-
-func neighbor(tile Vector2, direc Direction) Vector2 {
-	if int(tile.X)%2 == 0 {
-		switch direc {
-		case North:
-			tile.Y -= 1
-		case NorthEast:
-			tile.X += 1
-			tile.Y -= 1
-		case SouthEast:
-			tile.X += 1
-		case South:
-			tile.Y += 1
-		case SouthWest:
-			tile.X -= 1
-		case NorthWest:
-			tile.X -= 1
-			tile.Y -= 1
-		}
-	} else {
-		switch direc {
-		case North:
-			tile.Y -= 1
-		case NorthEast:
-			tile.X += 1
-		case SouthEast:
-			tile.X += 1
-			tile.Y += 1
-		case South:
-			tile.Y += 1
-		case SouthWest:
-			tile.X -= 1
-			tile.Y += 1
-		case NorthWest:
-			tile.X -= 1
-		}
-	}
-
-	if tile.X < 0 {
-		tile.X = -1
-	}
-	if tile.Y < 0 {
-		tile.Y = -1
-	}
-	if tile.X > columns-1 {
-		tile.X = -1
-	}
-	if tile.Y > rows-1 {
-		tile.Y = -1
-	}
-	return tile
-}
-
-const NODE_SIZE = 1
-
-type ANode struct {
-	Position         Vector2
-	Walkable         bool
-	Parent           *ANode
-	DistanceToTarget float64
-	Cost             float64
-	Weight           float64
-	F                float64
-}
-
-func NewANode(position Vector2, walkable bool) *ANode {
-	return &ANode{
-		Position: position,
-		Walkable: walkable,
-	}
-}
-
-type AStar struct {
-	Grid     [][]*ANode
-	GridRows int
-	GridCols int
-}
-
-func NewAStar(grid [][]*ANode) *AStar {
-	return &AStar{
-		Grid:     grid,
-		GridRows: len(grid[0]),
-		GridCols: len(grid),
-	}
-}
-
-//var Grid [][]*ANode
-
-type Vector2 struct {
-	X, Y float64
-}
-
-type PriorityQueue[T any, P float64] struct {
-	items []struct {
-		Element  T
-		Priority P
-	}
-}
-
-func NewPriorityQueue[T any, P float64]() *PriorityQueue[T, P] {
-	return &PriorityQueue[T, P]{
-		items: make([]struct {
-			Element  T
-			Priority P
-		}, 0),
-	}
-}
-
-func (pq *PriorityQueue[T, P]) Enqueue(element T, priority P) {
-	pq.items = append(pq.items, struct {
-		Element  T
-		Priority P
-	}{
-		Element:  element,
-		Priority: priority,
-	})
-}
-
-func (pq *PriorityQueue[T, P]) Dequeue() T {
-	minIndex := 0
-	for i := 1; i < len(pq.items); i++ {
-		if pq.items[i].Priority < pq.items[minIndex].Priority {
-			minIndex = i
-		}
-	}
-	item := pq.items[minIndex]
-	pq.items = append(pq.items[:minIndex], pq.items[minIndex+1:]...)
-	return item.Element
-}
-
-func (pq *PriorityQueue[T, P]) Count() int {
-	return len(pq.items)
-}
-
-func (a *AStar) FindPath(start, end Vector2) *Stack[*ANode] {
-	startNode := NewANode(Vector2{
-		X: start.X / NODE_SIZE,
-		Y: start.Y / NODE_SIZE,
-	}, true)
-	endNode := NewANode(Vector2{
-		X: end.X / NODE_SIZE,
-		Y: end.Y / NODE_SIZE,
-	}, true)
-
-	path := NewStack[*ANode]()
-	openList := NewPriorityQueue[*ANode, float64]()
-	closedList := make([]*ANode, 0)
-
-	current := startNode
-	openList.Enqueue(startNode, startNode.F)
-
-	for openList.Count() != 0 && !contains(closedList, func(n *ANode) bool {
-		return n.Position == endNode.Position
-	}) {
-		current = openList.Dequeue()
-		closedList = append(closedList, current)
-		adjacencies := a.GetAdjacentNodes(current)
-		for _, n := range adjacencies {
-			if !contains(closedList, func(c *ANode) bool {
-				return c == n
-			}) && n.Walkable {
-				isFound := false
-				for _, oLNode := range openList.items {
-					if oLNode.Element == n {
-						isFound = true
-						break
-					}
-				}
-				if !isFound {
-					n.Parent = current
-					n.DistanceToTarget = math.Abs(n.Position.X-endNode.Position.X) + math.Abs(n.Position.Y-endNode.Position.Y)
-					n.Cost = n.Weight + n.Parent.Cost
-					openList.Enqueue(n, n.F)
-				}
-			}
-		}
-	}
-
-	if !contains(closedList, func(n *ANode) bool {
-		return n.Position == endNode.Position
-	}) {
-		return nil
-	}
-
-	temp := closedList[indexOf(closedList, func(n *ANode) bool {
-		return n == current
-	})]
-	if temp == nil {
-		return nil
-	}
-	for temp != startNode && temp != nil {
-		path.Push(temp)
-		temp = temp.Parent
-	}
-	return path
-}
-
-func contains[T any](slice []*T, predicate func(*T) bool) bool {
-	for _, item := range slice {
-		if predicate(item) {
-			return true
-		}
-	}
-	return false
-}
-
-func indexOf[T any](slice []*T, predicate func(*T) bool) int {
-	for i, item := range slice {
-		if predicate(item) {
-			return i
-		}
-	}
-	return -1
-}
-
-type Stack[T any] struct {
-	items []T
-}
-
-func NewStack[T any]() *Stack[T] {
-	return &Stack[T]{
-		items: make([]T, 0),
-	}
-}
-
-func (s *Stack[T]) Push(item T) {
-	s.items = append(s.items, item)
-}
-
-func (s *Stack[T]) Pop() T {
-	item := s.items[len(s.items)-1]
-	s.items = s.items[:len(s.items)-1]
-	return item
-}
-
-func (s *Stack[T]) Count() int {
-	var length int
-	if s != nil{
-		length = len(s.items)
-		return length
-	} else {
-		return -1
-	}
-}
-
-func (a *AStar) GetAdjacentNodes(n *ANode) []*ANode {
-	var temp []*ANode
-	var dir Direction
-
-	for i := 0; i < 6; i++ {
-		m := neighbor(n.Position, dir)
-		if m.X > -1 && m.Y > -1 {
-			temp = append(temp, a.Grid[int(m.X)][int(m.Y)])
-		}
-		dir = RotateDirection(dir, 1)
-	}
-	return temp
-}
-
-// --- to here pathfinding hex ------------------------------------------------
 
 func (s *Sprite) Update() {
 	s.x += s.vx
@@ -584,11 +303,11 @@ func (g *Game) Update() error {
 
 		path = astar.FindPath(vstart, vend)
 		if path != nil {
-			hx.q = int(path.items[0].Position.X)
-			hx.r = int(path.items[0].Position.Y)
+			hx.q = int(path[0].Position.X)
+			hx.r = int(path[0].Position.Y)
 			p = hex_to_pixel(hx)
 			g.setspritepos(1, int(p.x), int(p.y))
-		} else{
+		} else {
 			fmt.Println("no path found!")
 		}
 	}
@@ -600,9 +319,9 @@ func (g *Game) Update() error {
 
 func genGrid() {
 	for x := 0; x < (columns); x++ {
-		var anodes []*ANode
+		var anodes []*astarhexlib.ANode
 		for y := 0; y < (rows); y++ {
-			var tmpanode ANode
+			var tmpanode astarhexlib.ANode
 			tmpanode.Position.X = float64(x)
 			tmpanode.Position.Y = float64(y)
 			tmpanode.Walkable = terrains[terrainmap0[y][x]].walkable
@@ -659,31 +378,31 @@ func drawHex(screen *ebiten.Image, floor int) {
 			}
 
 			/*
-			// floor 1
-			op.GeoM.Reset()
-			if flip1[y][x] > 0 {
-				if flip1[y][x] == 1 {
-					op.GeoM.Scale(-1, 1)
-					op.GeoM.Translate(tilewidth, 0)
-				} else {
-					if flip1[y][x] == 2 {
-						op.GeoM.Scale(1, -1)
-						op.GeoM.Translate(0, tilewidth)
+				// floor 1
+				op.GeoM.Reset()
+				if flip1[y][x] > 0 {
+					if flip1[y][x] == 1 {
+						op.GeoM.Scale(-1, 1)
+						op.GeoM.Translate(tilewidth, 0)
 					} else {
-						if flip1[y][x] == 3 {
-							op.GeoM.Scale(-1, -1)
-							op.GeoM.Translate(tilewidth, tilewidth)
+						if flip1[y][x] == 2 {
+							op.GeoM.Scale(1, -1)
+							op.GeoM.Translate(0, tilewidth)
+						} else {
+							if flip1[y][x] == 3 {
+								op.GeoM.Scale(-1, -1)
+								op.GeoM.Translate(tilewidth, tilewidth)
+							}
 						}
 					}
 				}
-			}
-			op.GeoM.Translate(float64(tilesizex*3/4)*float64(x), float64(y)*tilesizey)
-			if x%2 != 0 {
-				op.GeoM.Translate(0, float64(tilesizey/2))
-			}
-			if terrainmap1[y][x] >= floor1start {
-				screen.DrawImage(terrainimages[terrainmap1[y][x]], op)
-			}
+				op.GeoM.Translate(float64(tilesizex*3/4)*float64(x), float64(y)*tilesizey)
+				if x%2 != 0 {
+					op.GeoM.Translate(0, float64(tilesizey/2))
+				}
+				if terrainmap1[y][x] >= floor1start {
+					screen.DrawImage(terrainimages[terrainmap1[y][x]], op)
+				}
 			*/
 		}
 	}
@@ -750,11 +469,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawHex(screen, 0)
 
 	// draw the green steps of the pathfinding
-	for i := 0; i < path.Count(); i++ {
+	for i := 0; i < len(path); i++ {
 		//fmt.Println("path Nr:", i, " x:", path.items[i].Position.X, " y:", path.items[i].Position.Y)
 		op.GeoM.Reset()
-		op.GeoM.Translate(float64(tilesizex*3/4)*float64(path.items[i].Position.X), float64(path.items[i].Position.Y)*tilesizey)
-		if int(path.items[i].Position.X)%2 != 0 {
+		op.GeoM.Translate(float64(tilesizex*3/4)*float64(path[i].Position.X), float64(path[i].Position.Y)*tilesizey)
+		if int(path[i].Position.X)%2 != 0 {
 			op.GeoM.Translate(0, float64(tilesizey/2))
 		}
 		screen.DrawImage(terrainimages[9], op)
@@ -786,7 +505,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw the hexboard
 	drawHex(screen, 1)
-
 
 	//w, h := ebitenImage.Bounds().Dx(), ebitenImage.Bounds().Dy()
 	var w, h int
