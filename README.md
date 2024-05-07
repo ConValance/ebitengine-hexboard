@@ -11,7 +11,7 @@ good information for hex: https://www.redblobgames.com/grids/hexagons/
 screenshot:    
 ![Pic1](screenshotsmall.jpg)
 
-# new changes:     
+# last changes:     
 - mouseclick left for new startpos, mouseclick right for new target
 - check if path found, new part for floor1 a tree, floor as parameter
 - changed the pathfinding to a local library in file astarhexlib.go    
